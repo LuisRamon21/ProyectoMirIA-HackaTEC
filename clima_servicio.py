@@ -9,8 +9,8 @@ def obtener_clima_actual(api_key: str, ciudad: str = "Chihuahua,MX") -> Optional
     parametros = {
         "q": ciudad,
         "appid": api_key,
-        "units": "metric",  # Sistema métrico (Celsius, m/s)
-        "lang": "es"        # Respuestas en español
+        "units": "metric",  
+        "lang": "es"        
     }
 
     try:
