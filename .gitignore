@@ -1,2 +1,13 @@
-# Ignorar variables de entorno
+# Entornos y secretos
+venv/
+.venv/
 .env
+
+# Python
+__pycache__/
+*.pyc
+
+# Editor / sistema
+.vscode/
+.DS_Store
+Thumbs.db
