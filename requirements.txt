@@ -7,3 +7,5 @@ sqlalchemy
 pymysql
 numpy
 scikit-fuzzy
+scipy
+networkx
