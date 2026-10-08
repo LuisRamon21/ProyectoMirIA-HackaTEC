@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from backend.services.orquestador import generar_diagnostico_riego
 from backend.db import engine
 from backend.services import registro_riego
+from backend.routers.comunidad import router as comunidad_router
 
 # 1. Inicializar la aplicación FastAPI
 app = FastAPI(
@@ -22,6 +23,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# Rutas de B.A.W.I. Comunidad (backend/routers/comunidad.py)
+app.include_router(comunidad_router)
 
 class SolicitudRiego(BaseModel):
     ciudad: str
