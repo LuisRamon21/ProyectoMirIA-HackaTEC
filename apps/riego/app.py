@@ -6,7 +6,8 @@ Pide el diagnostico al backend (FastAPI) y lo muestra con:
 - riesgo de estres del cultivo y cuanto reponer segun la lluvia (motores difusos)
 - horas de riego y ahorro de agua, energia y dinero (Tarifa 9-CU)
 - "Aprende el Porque": la explicacion en lenguaje sencillo
-- decision del agricultor: Aceptar / Ajustar / Rechazar
+- decision del agricultor: Aceptar / Ajustar / Rechazar (se guarda en la base de datos)
+- historial de decisiones leido de la base de datos
 
 Ejecutar desde la raiz del proyecto (con la API corriendo):
     streamlit run apps/riego/app.py --server.port 8502
@@ -20,6 +21,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 API_URL = os.getenv("API_URL", "http://localhost:8000")
+ID_PARCELA = int(os.getenv("RIEGO_ID_PARCELA", "1"))  # parcela del productor de la demo
 
 CIUDADES = {
     "Delicias": "Delicias,MX",
@@ -39,10 +41,10 @@ RAZONES_RECHAZO = ["Cosecha en curso", "Suelo saturado por lluvia", "Falla en el
 COLOR_RIESGO = {"BAJO": "green", "MODERADO": "orange", "CRÍTICO": "red"}
 
 
-def pedir_diagnostico(datos: dict) -> dict:
-    """Llama al backend. Devuelve el reporte o {'error': True, 'mensaje': ...}."""
+def llamar_api(metodo: str, ruta: str, **kwargs) -> dict | list:
+    """Llama al backend. Devuelve la respuesta o {'error': True, 'mensaje': ...}."""
     try:
-        resp = requests.post(f"{API_URL}/api/diagnostico", json=datos, timeout=15)
+        resp = requests.request(metodo, f"{API_URL}{ruta}", timeout=15, **kwargs)
     except requests.exceptions.RequestException:
         return {"error": True, "mensaje": f"No se pudo conectar con el backend en {API_URL}. ¿Está corriendo la API?"}
     if resp.status_code != 200:
@@ -54,43 +56,80 @@ def pedir_diagnostico(datos: dict) -> dict:
     return resp.json()
 
 
+def es_error(respuesta) -> bool:
+    return isinstance(respuesta, dict) and respuesta.get("error") is True
+
+
+def cargar_parcela() -> dict | None:
+    """Datos de la parcela guardados en la BD (una vez por sesion)."""
+    if "parcela" not in st.session_state:
+        respuesta = llamar_api("GET", f"/api/riego/parcelas/{ID_PARCELA}")
+        st.session_state.parcela = None if es_error(respuesta) else respuesta
+    return st.session_state.parcela
+
+
 def registrar_decision(decision: str, horas: float, motivo: str = "") -> None:
-    st.session_state.historial.append({
-        "Fecha": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        "Decisión": decision,
-        "Horas": round(horas, 2),
-        "Motivo": motivo,
-    })
+    """Guarda la decision en la BD; si no hay recomendacion guardada, solo en la sesion."""
+    id_rec = (st.session_state.reporte or {}).get("id_recomendacion")
+    if id_rec:
+        respuesta = llamar_api("POST", "/api/riego/decision", json={
+            "id_recomendacion": id_rec, "decision": decision, "horas_aplicadas": horas, "motivo": motivo,
+        })
+        if es_error(respuesta):
+            st.error(respuesta["mensaje"])
+            return
+        st.session_state.ultima_decision = respuesta
+    else:
+        st.session_state.historial.append({
+            "fecha": datetime.now().strftime("%Y-%m-%d %H:%M"), "estado": decision,
+            "horas_aplicadas": round(horas, 2), "motivo": motivo,
+        })
 
 
 # --------------------------------------------------------------------------
 # Pagina
 # --------------------------------------------------------------------------
 st.set_page_config(page_title="B.A.W.Í. Riego", page_icon="💧", layout="wide")
-st.session_state.setdefault("historial", [])
+st.session_state.setdefault("historial", [])  # solo se usa si no hay base de datos
 st.session_state.setdefault("reporte", None)
+st.session_state.setdefault("ultima_decision", None)
+parcela = cargar_parcela()
 
 st.title("💧 B.A.W.Í. Riego")
 st.caption("Recomendación de riego explicada, para que decidas tú con información.")
 
+def indice_de(opciones: dict, valor, por_defecto: int = 0) -> int:
+    """Posicion de un valor guardado (ej. 'nogal') dentro de un selectbox."""
+    valores = list(opciones.values())
+    return valores.index(valor) if valor in valores else por_defecto
+
+
+p = parcela or {}
 with st.sidebar:
+    if parcela:
+        st.success(f"👨‍🌾 **{parcela['productor']}**  \n🌳 {parcela['nombre']}")
+    else:
+        st.warning("No se pudo cargar tu parcela de la base de datos. Llena los datos a mano.")
+
     st.header("Tu parcela")
-    ciudad_txt = st.selectbox("Región", list(CIUDADES))
-    cultivo_txt = st.selectbox("Cultivo", list(CULTIVOS))
-    etapa_txt = st.selectbox("Etapa del cultivo", list(ETAPAS))
+    ciudad_txt = st.selectbox("Región", list(CIUDADES), index=indice_de(CIUDADES, f"{p.get('municipio')},MX"))
+    cultivo_txt = st.selectbox("Cultivo", list(CULTIVOS), index=indice_de(CULTIVOS, p.get("cultivo")))
+    etapa_txt = st.selectbox("Etapa del cultivo", list(ETAPAS), index=indice_de(ETAPAS, p.get("etapa")))
 
     st.header("Tu sistema de riego")
     tasa_mm_h = st.number_input(
-        "Tasa de aplicación (mm/h)", min_value=0.5, max_value=20.0, value=3.0, step=0.5,
+        "Tasa de aplicación (mm/h)", min_value=0.5, max_value=20.0, value=float(p.get("tasa_mm_h", 3.0)), step=0.5,
         help="Cuántos milímetros de agua aplica tu goteo o microaspersión en una hora.",
     )
-    superficie_ha = st.number_input("Superficie que riegas (ha)", min_value=0.5, max_value=500.0, value=10.0, step=0.5)
+    superficie_ha = st.number_input("Superficie que riegas (ha)", min_value=0.5, max_value=500.0,
+                                    value=float(p.get("area_ha", 10.0)), step=0.5)
     potencia_kw = st.number_input(
-        "Potencia de la bomba (kW)", min_value=1.0, max_value=300.0, value=45.0, step=1.0,
-        help="Viene en la placa del motor. 1 HP ≈ 0.75 kW.",
+        "Potencia de la bomba (kW)", min_value=1.0, max_value=300.0, value=float(p.get("potencia_bomba_kw", 45.0)),
+        step=1.0, help="Viene en la placa del motor. 1 HP ≈ 0.75 kW.",
     )
     horas_habituales = st.number_input(
-        "Horas que riegas normalmente al día", min_value=0.0, max_value=24.0, value=4.0, step=0.5,
+        "Horas que riegas normalmente al día", min_value=0.0, max_value=24.0,
+        value=float(p.get("horas_riego_habitual", 4.0)), step=0.5,
         help="Con esto calculamos cuánto ahorras siguiendo la recomendación.",
     )
 
@@ -99,8 +138,9 @@ with st.sidebar:
     calcular = st.button("Calcular recomendación", type="primary", width="stretch")
 
 if calcular:
+    st.session_state.ultima_decision = None
     with st.spinner("Consultando el clima y calculando..."):
-        st.session_state.reporte = pedir_diagnostico({
+        st.session_state.reporte = llamar_api("POST", "/api/diagnostico", json={
             "ciudad": CIUDADES[ciudad_txt],
             "cultivo": CULTIVOS[cultivo_txt],
             "etapa_actual": ETAPAS[etapa_txt],
@@ -109,6 +149,7 @@ if calcular:
             "potencia_bomba_kw": potencia_kw,
             "horas_habituales": horas_habituales,
             "modo_demo": modo_demo,
+            "id_parcela": parcela["id_parcela"] if parcela else None,
         })
 
 reporte = st.session_state.reporte
@@ -131,6 +172,8 @@ horas = riego["horas"]
 
 if reporte["metadata_app"].get("modo_demo"):
     st.warning("Mostrando clima de ejemplo (modo demostración).")
+if reporte.get("aviso_bd"):
+    st.warning("La recomendación no se guardó en la base de datos; tus decisiones quedarán solo en esta sesión.")
 if not pron["disponible"]:
     st.warning("No se pudo obtener el pronóstico; la recomendación no descuenta lluvia.")
 
@@ -208,23 +251,48 @@ tab_ok, tab_ajuste, tab_no = st.tabs(["✔ Aceptar", "✏ Ajustar horas", "✖ R
 with tab_ok:
     st.write(f"Aplicar **{horas:.1f} horas** de riego hoy.")
     if st.button("Aceptar y aplicar", key="btn_aceptar"):
-        registrar_decision("Aceptado", horas)
-        st.success("Riego registrado. ¡Buena decisión!")
+        registrar_decision("aceptada", horas)
 
 with tab_ajuste:
     horas_ajustadas = st.number_input("Horas que vas a regar", min_value=0.0, max_value=24.0,
                                       value=round(horas, 1), step=0.25)
     motivo = st.selectbox("Motivo del ajuste", MOTIVOS_AJUSTE)
     if st.button("Guardar ajuste", key="btn_ajustar"):
-        registrar_decision("Ajustado", horas_ajustadas, motivo)
-        st.success(f"Ajuste registrado: {horas_ajustadas} h ({motivo}).")
+        registrar_decision("ajustada", horas_ajustadas, motivo)
 
 with tab_no:
     razon = st.selectbox("¿Por qué no riegas hoy?", RAZONES_RECHAZO)
     if st.button("Rechazar recomendación", key="btn_rechazar"):
-        registrar_decision("Rechazado", 0.0, razon)
-        st.info(f"Registrado: hoy no se riega ({razon}).")
+        registrar_decision("rechazada", 0.0, razon)
 
-if st.session_state.historial:
+decision = st.session_state.ultima_decision
+if decision:
+    if decision["estado"] == "rechazada":
+        st.info("Registrado: hoy no se riega. Quedó guardado en tu historial.")
+    elif decision["agua_m3"] is not None and decision["agua_m3"] >= 0:
+        st.success(
+            f"Riego de {decision['horas_aplicadas']} h registrado ({decision['estado']}). "
+            f"Hoy ahorras **{decision['agua_m3']:,.0f} m³** de agua, **{decision['energia_kwh']:,.1f} kWh** "
+            f"y **${decision['dinero_mxn']:,.2f} MXN** frente a tu riego habitual."
+        )
+    else:
+        st.success(f"Riego de {decision['horas_aplicadas']} h registrado ({decision['estado']}).")
+
+# --- Historial (base de datos) ------------------------------------------------
+ESTADOS = {"aceptada": "✔ Aceptada", "ajustada": "✏ Ajustada", "rechazada": "✖ Rechazada", "pendiente": "⏳ Pendiente"}
+historial = llamar_api("GET", f"/api/riego/historial/{parcela['id_parcela']}") if parcela else []
+if es_error(historial):
+    historial = []
+filas = [
+    {"Fecha": h["fecha"], "Sugeridas (h)": h["horas_sugeridas"], "Decisión": ESTADOS.get(h["estado"], h["estado"]),
+     "Aplicadas (h)": h["horas_aplicadas"], "Motivo": h["motivo"] or "", "Agua ahorrada (m³)": h["agua_ahorrada_m3"],
+     "Ahorro ($)": h["ahorro_mxn"]}
+    for h in historial
+] or [
+    {"Fecha": h["fecha"], "Decisión": ESTADOS.get(h["estado"], h["estado"]),
+     "Aplicadas (h)": h["horas_aplicadas"], "Motivo": h["motivo"]}
+    for h in st.session_state.historial
+]
+if filas:
     st.subheader("Historial de decisiones")
-    st.dataframe(st.session_state.historial, width="stretch", hide_index=True)
+    st.dataframe(filas, width="stretch", hide_index=True)
