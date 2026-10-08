@@ -79,6 +79,12 @@ def cerrar_sesion() -> None:
         st.session_state[clave] = None
 
 
+def requiere_codigo() -> bool:
+    """Si la API pide el codigo del correo al crear cuenta (depende de si tiene correo configurado)."""
+    ok, datos = llamar_api("GET", "/api/comunidad/registro/verificacion")
+    return datos["requiere_codigo"] if ok else True
+
+
 def limpiar_resultado() -> None:
     st.session_state.reporte = None
     st.session_state.ultima_decision = None
@@ -129,23 +135,30 @@ def pantalla_entrar() -> None:
 
 def pantalla_crear_cuenta() -> None:
     st.subheader("Crear cuenta")
-    st.caption("Paso 1 de 2 · Te enviaremos un código a tu correo para confirmar que es tuyo.")
+    con_codigo = requiere_codigo()
+    st.caption("Paso 1 de 2 · Te enviaremos un código a tu correo para confirmar que es tuyo."
+               if con_codigo else "Llena tus datos para crear tu cuenta.")
     with st.form("form_crear", border=False):
         nombre = st.text_input("Nombre completo")
         correo = st.text_input("Correo electrónico", placeholder="tu@correo.com")
         municipio = st.selectbox("Municipio de tu parcela", list(CIUDADES))
         password = st.text_input("Contraseña (mínimo 6)", type="password")
         confirmacion = st.text_input("Confirma tu contraseña", type="password")
-        crear = st.form_submit_button("Enviarme el código", type="primary", width="stretch")
+        crear = st.form_submit_button("Enviarme el código" if con_codigo else "Crear cuenta",
+                                      type="primary", width="stretch")
     if crear:
         if password != confirmacion:
             st.error("Las contraseñas no coinciden.")
         else:
-            with st.spinner("Enviando el código a tu correo..."):
+            with st.spinner("Enviando el código a tu correo..." if con_codigo else "Creando tu cuenta..."):
                 ok, datos = llamar_api("POST", "/api/comunidad/registro/solicitar", json={
                     "nombre": nombre, "correo": correo, "municipio": municipio,
                     "password": password, "confirmacion": confirmacion,
                 })
+            if ok and "token" in datos:  # sin correo configurado la cuenta se crea de una vez
+                st.session_state.vista_acceso = "entrar"
+                iniciar_sesion(datos)
+                st.rerun()
             if ok:
                 st.session_state.registro = datos
                 st.rerun()

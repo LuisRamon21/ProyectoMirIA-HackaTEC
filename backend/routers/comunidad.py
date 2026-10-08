@@ -23,7 +23,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import bindparam, text
 
 from backend.db import engine
-from backend.services.correo import CorreoNoConfigurado, enviar_codigo
+from backend.services.correo import CorreoNoConfigurado, correo_configurado, enviar_codigo
 from backend.services.cuentas import (crear_token, generar_codigo, hash_codigo, hashear_password, leer_token,
                                       verificar_password)
 from backend.services import puntos as reglas
@@ -158,12 +158,39 @@ def _momentos() -> dict:
             "limite_reenvio": ahora - timedelta(seconds=SEGUNDOS_PARA_REENVIAR)}
 
 
+def _crear_cuenta_directa(datos: Registro, correo: str) -> dict:
+    """Sin servidor de correo configurado: la cuenta se crea al momento, sin codigo."""
+    with engine.begin() as conexion:
+        if buscar_usuario(conexion, correo=correo):
+            raise HTTPException(status_code=409, detail="Ya existe una cuenta con ese correo. Inicia sesión.")
+        conexion.execute(
+            text("INSERT INTO usuarios (nombre, usuario, correo, password_hash, municipio) "
+                 "VALUES (:nombre, :usuario, :correo, :hash, :municipio)"),
+            {"nombre": datos.nombre.strip(), "usuario": _usuario_desde_correo(conexion, correo), "correo": correo,
+             "hash": hashear_password(datos.password), "municipio": datos.municipio.strip()},
+        )
+        fila = buscar_usuario(conexion, correo=correo)
+    return {"token": crear_token(fila["id_usuario"]), "usuario": usuario_publico(fila)}
+
+
+@router.get("/registro/verificacion")
+def modo_registro():
+    """Las apps lo usan para saber si al crear cuenta se pedira el codigo del correo."""
+    return {"requiere_codigo": correo_configurado()}
+
+
 @router.post("/registro/solicitar")
 def solicitar_registro(datos: Registro):
-    """Paso 1: guarda los datos como registro pendiente y envia un codigo de 6 numeros al correo."""
+    """
+    Paso 1: guarda los datos como registro pendiente y envia un codigo de 6 numeros al correo.
+    Si no hay servidor de correo configurado (SMTP en .env), crea la cuenta de una vez y regresa
+    la sesion iniciada ({"token", "usuario"}) en lugar de pedir el codigo.
+    """
     if datos.password != datos.confirmacion:
         raise HTTPException(status_code=400, detail="Las contraseñas no coinciden.")
     correo = datos.correo.strip().lower()
+    if not correo_configurado():
+        return _crear_cuenta_directa(datos, correo)
     codigo, t = generar_codigo(), _momentos()
     with engine.begin() as conexion:  # si el correo no sale, no queda nada guardado
         if buscar_usuario(conexion, correo=correo):

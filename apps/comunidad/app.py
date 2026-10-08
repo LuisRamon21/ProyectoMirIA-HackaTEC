@@ -312,6 +312,12 @@ def llamar_capacitacion(metodo: str, ruta: str, **kwargs):
     return llamar_api(metodo, ruta, base=API_CAPACITACION, **kwargs)
 
 
+def requiere_codigo() -> bool:
+    """Si la API pide el codigo del correo al crear cuenta (depende de si tiene correo configurado)."""
+    ok, datos = llamar_api("GET", "/registro/verificacion")
+    return datos["requiere_codigo"] if ok else True
+
+
 def iniciar_sesion(datos: dict) -> None:
     st.session_state.vf = None
     st.session_state.token = datos["token"]
@@ -709,23 +715,31 @@ def pantalla_acceso() -> None:
         else:
             st.markdown('<div class="bawi-etiqueta">Únete a Comunidad</div>', unsafe_allow_html=True)
             st.subheader("Crear cuenta")
-            st.caption("Paso 1 de 2 · Te enviaremos un código a tu correo para confirmar que es tuyo.")
+            con_codigo = requiere_codigo()
+            st.caption("Paso 1 de 2 · Te enviaremos un código a tu correo para confirmar que es tuyo."
+                       if con_codigo else "Llena tus datos para crear tu cuenta.")
             with st.form("form_crear", border=False):
                 nombre = st.text_input("Nombre que aparecerá en tu perfil")
                 correo = st.text_input("Correo electrónico", placeholder="tu@correo.com")
                 municipio = st.selectbox("Zona de tu cultivo", REGIONES)
                 password = st.text_input("Contraseña (mínimo 6)", type="password")
                 confirmacion = st.text_input("Confirma tu contraseña", type="password")
-                crear = st.form_submit_button("Enviarme el código", type="primary", width="stretch")
+                crear = st.form_submit_button("Enviarme el código" if con_codigo else "Crear cuenta",
+                                              type="primary", width="stretch")
             if crear:
                 if password != confirmacion:
                     st.error("Las contraseñas no coinciden.")
                 else:
-                    with st.spinner("Enviando el código a tu correo..."):
+                    with st.spinner("Enviando el código a tu correo..." if con_codigo else "Creando tu cuenta..."):
                         ok, datos = llamar_api("POST", "/registro/solicitar", json={
                             "nombre": nombre, "correo": correo, "municipio": municipio,
                             "password": password, "confirmacion": confirmacion,
                         })
+                    if ok and "token" in datos:  # sin correo configurado la cuenta se crea de una vez
+                        st.session_state.vista_acceso = "entrar"
+                        iniciar_sesion(datos)
+                        avisar(f"¡Bienvenido a la comunidad, {datos['usuario']['nombre']}!")
+                        st.rerun()
                     if ok:
                         st.session_state.registro = datos
                         st.rerun()

@@ -7,8 +7,8 @@ Datos en el archivo .env (con Gmail se usa una "contraseña de aplicación", no 
     SMTP_USER=tucuenta@gmail.com
     SMTP_PASSWORD=abcdefghijklmnop
 
-Si SMTP_USER o SMTP_PASSWORD estan vacios no se pueden crear cuentas nuevas
-(la API responde que el envio de correos no esta configurado).
+Si SMTP_USER o SMTP_PASSWORD estan vacios no se envia codigo: la cuenta se crea
+al momento sin verificar el correo (backend/routers/comunidad.py).
 """
 import os
 import smtplib

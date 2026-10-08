@@ -50,7 +50,8 @@ Edita `.env`:
 - `SECRET_KEY`: genera una con `python -c "import secrets; print(secrets.token_hex(32))"`
 - `DB_SERVER`, `DB_USER`, `DB_PASSWORD` si tu SQL Server es distinto
 - `SMTP_USER` y `SMTP_PASSWORD` para enviar el código al crear cuentas (Riego y Comunidad)
-  (con Gmail, una *contraseña de aplicación*). Sin estos datos no se pueden crear cuentas nuevas.
+  (con Gmail, una *contraseña de aplicación*). Si se dejan vacíos, las cuentas se crean al momento
+  sin verificar el correo.
 
 Crea la base de datos y carga el contenido de Capacitación:
 
