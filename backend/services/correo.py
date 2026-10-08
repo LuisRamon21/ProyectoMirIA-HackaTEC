@@ -7,8 +7,10 @@ Datos en el archivo .env (con Gmail se usa una "contraseña de aplicación", no 
     SMTP_USER=tucuenta@gmail.com
     SMTP_PASSWORD=abcdefghijklmnop
 
-Si SMTP_USER o SMTP_PASSWORD estan vacios no se envia codigo: la cuenta se crea
-al momento sin verificar el correo (backend/routers/comunidad.py).
+VERIFICACION DESACTIVADA: correo_configurado() siempre regresa False, asi que al crear
+cuenta (Riego y Comunidad) no se pide codigo y la cuenta se crea al momento, aunque haya
+datos de SMTP en .env (backend/routers/comunidad.py). Para reactivarla, cambia
+VERIFICAR_CORREO a True.
 """
 import os
 import smtplib
@@ -24,7 +26,13 @@ class CorreoNoConfigurado(Exception):
     """Faltan SMTP_USER o SMTP_PASSWORD en .env."""
 
 
+# Verificacion del correo en dos pasos al crear cuenta (desactivada)
+VERIFICAR_CORREO = False
+
+
 def correo_configurado() -> bool:
+    if not VERIFICAR_CORREO:
+        return False
     return bool(os.getenv("SMTP_USER") and os.getenv("SMTP_PASSWORD"))
 
 
