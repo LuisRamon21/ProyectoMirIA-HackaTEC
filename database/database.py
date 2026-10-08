@@ -13,7 +13,7 @@ def obtener_conexion():
   
   
     cadena_conexion = f'DRIVER={driver};SERVER={server};DATABASE={database};Trusted_Connection=yes;TrustServerCertificate=yes;'
-    return pyodbc.connect(cadena)
+    return pyodbc.connect(cadena_conexion)
 
 def obtener_datos_clima_reciente():
     """Extrae la temperatura y humedad más reciente de la base de datos."""

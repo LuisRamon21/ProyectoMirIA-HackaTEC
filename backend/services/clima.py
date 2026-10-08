@@ -1,23 +1,24 @@
+"""
+Servicio de clima (OpenWeather, plan gratuito).
+
+- obtener_clima_actual: temperatura, humedad, viento y descripcion de ahora.
+- obtener_pronostico_24h: de las proximas 24 h (8 bloques de 3 h) saca la
+  probabilidad maxima de lluvia, la lluvia esperada en mm y la temperatura maxima.
+"""
 import os
-import requests
 from typing import Optional, Dict
-from dotenv import load_dotenv
+
+import requests
+
+URL_ACTUAL = "https://api.openweathermap.org/data/2.5/weather"
+URL_PRONOSTICO = "https://api.openweathermap.org/data/2.5/forecast"
+BLOQUES_24H = 8  # el pronostico viene en bloques de 3 horas
 
 
-load_dotenv()
-
-def obtener_clima_actual(api_key: str, ciudad: str = "Chihuahua,MX") -> Optional[Dict]:
-    """
-    Se conecta a la API de OpenWeatherMap y extrae el clima actual.
-    """
-    url = "https://api.openweathermap.org/data/2.5/weather"
-    parametros = {
-        "q": "Chihuahua,MX",
-        "appid": api_key,
-        "units": "metric",  
-        "lang": "es"        
-    }
-
+def _consultar(url: str, api_key: str, ciudad: str, extra: Optional[Dict] = None) -> Optional[Dict]:
+    parametros = {"q": ciudad, "appid": api_key, "units": "metric", "lang": "es"}
+    if extra:
+        parametros.update(extra)
     try:
         respuesta = requests.get(url, params=parametros, timeout=5)
         respuesta.raise_for_status()
@@ -37,9 +38,9 @@ def obtener_clima_actual(api_key: str, ciudad: str = "Chihuahua,MX") -> Optional
 
 # --- Prueba independiente ---
 if __name__ == "__main__":
-    MI_API_KEY = os.getenv("OPENWEATHER_API_KEY")
-    if not MI_API_KEY:
+    mi_api_key = os.getenv("OPENWEATHER_API_KEY")
+    if not mi_api_key:
         print("❌ Falla: No hay API Key en el archivo .env")
     else:
-        clima = obtener_clima_actual(MI_API_KEY, "Chihuahua ,MX")
+        clima = _consultar(URL_ACTUAL, mi_api_key, "Chihuahua, MX")
         print(clima)
