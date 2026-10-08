@@ -1,0 +1,2805 @@
+{
+ "version": "Propuesta para revisión, 8 oct 2026",
+ "formularios": [
+  {
+   "codigo": "N1-F01",
+   "titulo": "Vocabulario del agua",
+   "nivel": 1,
+   "contexto": "",
+   "preguntas": [
+    {
+     "enunciado": "¿Qué describe el caudal?",
+     "opciones": [
+      "Temperatura del suelo",
+      "Área de la parcela",
+      "Volumen de agua por unidad de tiempo",
+      "Edad del cultivo"
+     ],
+     "correcta": 2,
+     "explicacion": "El caudal expresa cuánto volumen circula en un intervalo.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "¿En qué unidad puede expresarse el volumen de agua?",
+     "opciones": [
+      "Kilovatios hora",
+      "Metros por segundo",
+      "Metros cúbicos",
+      "Grados Celsius"
+     ],
+     "correcta": 2,
+     "explicacion": "m³ es una unidad de volumen.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "¿Qué representa una lámina de agua en milímetros?",
+     "opciones": [
+      "La velocidad del viento",
+      "La edad del árbol",
+      "Una tarifa eléctrica",
+      "Una profundidad equivalente de agua"
+     ],
+     "correcta": 3,
+     "explicacion": "La lámina expresa profundidad sobre un área.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "¿Qué significa precipitación en una tarjeta de clima?",
+     "opciones": [
+      "Caudal del gotero",
+      "Puntaje del perfil",
+      "Agua que llega desde la atmósfera, como lluvia",
+      "Horas de bombeo"
+     ],
+     "correcta": 2,
+     "explicacion": "El proyecto considera la lluvia al interpretar la demanda.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "¿Qué es una etapa fenológica?",
+     "opciones": [
+      "Un tipo de tubería",
+      "Una fase del desarrollo del cultivo",
+      "Una contraseña",
+      "Una factura eléctrica"
+     ],
+     "correcta": 1,
+     "explicacion": "El Kc depende del cultivo y de su etapa.",
+     "fuentes": "M,F"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Aprendiz del Campo"
+  },
+  {
+   "codigo": "N1-F02",
+   "titulo": "Conoce tu parcela",
+   "nivel": 1,
+   "contexto": "",
+   "preguntas": [
+    {
+     "enunciado": "¿Qué dato identifica la planta cultivada?",
+     "opciones": [
+      "El nombre de la cuenta",
+      "El color de la pantalla",
+      "La especie o cultivo",
+      "La fecha de registro"
+     ],
+     "correcta": 2,
+     "explicacion": "El cultivo es un dato necesario para contextualizar el riego.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "¿Por qué registrar la zona de una parcela?",
+     "opciones": [
+      "Para elegir el color del menú",
+      "Para aumentar likes",
+      "Para reemplazar el caudal",
+      "Para interpretar el clima del lugar"
+     ],
+     "correcta": 3,
+     "explicacion": "La recomendación usa clima asociado a la parcela.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "¿Qué dato identifica cómo se distribuye el agua?",
+     "opciones": [
+      "El sistema de riego",
+      "El precio del teléfono",
+      "El rango de Comunidad",
+      "La contraseña"
+     ],
+     "correcta": 0,
+     "explicacion": "B.A.W.Í. contempla goteo o microaspersión.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "¿Qué información falta si solo se escribe nogal?",
+     "opciones": [
+      "El fondo del perfil",
+      "La cantidad de seguidores",
+      "El nombre del navegador",
+      "La etapa y condiciones de la parcela"
+     ],
+     "correcta": 3,
+     "explicacion": "El nombre del cultivo no describe todo su contexto.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "¿Qué hacer con un dato de parcela desconocido?",
+     "opciones": [
+      "Tomarlo como cero",
+      "Inventar un valor",
+      "Copiar siempre otra parcela",
+      "Registrarlo como pendiente y verificarlo"
+     ],
+     "correcta": 3,
+     "explicacion": "Un dato faltante no equivale a una medición de cero.",
+     "fuentes": "M"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Aprendiz del Campo"
+  },
+  {
+   "codigo": "N1-F03",
+   "titulo": "Lee el clima",
+   "nivel": 1,
+   "contexto": "",
+   "preguntas": [
+    {
+     "enunciado": "¿Cuál es una variable meteorológica usada por el proyecto?",
+     "opciones": [
+      "Cantidad de publicaciones",
+      "Color de tarjeta",
+      "Rango del usuario",
+      "Humedad relativa"
+     ],
+     "correcta": 3,
+     "explicacion": "Temperatura, humedad, viento y radiación alimentan el clima.",
+     "fuentes": "M,F"
+    },
+    {
+     "enunciado": "¿Qué variable se expresa habitualmente en grados Celsius?",
+     "opciones": [
+      "Caudal",
+      "Energía eléctrica",
+      "Lámina de agua",
+      "Temperatura"
+     ],
+     "correcta": 3,
+     "explicacion": "La temperatura y el volumen tienen unidades diferentes.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "¿Qué representa el viento en la tarjeta meteorológica?",
+     "opciones": [
+      "La edad del cultivo",
+      "Una tarifa",
+      "Una condición del clima",
+      "El puntaje"
+     ],
+     "correcta": 2,
+     "explicacion": "El viento interviene en la evaluación meteorológica.",
+     "fuentes": "M,F"
+    },
+    {
+     "enunciado": "¿Un pronóstico garantiza que lloverá?",
+     "opciones": [
+      "Sí, si el cultivo es nogal",
+      "Sí, siempre",
+      "No, es información prevista",
+      "Solo si hay muchos likes"
+     ],
+     "correcta": 2,
+     "explicacion": "Un dato previsto debe distinguirse de un evento observado.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "¿Qué significa API de clima por conectar?",
+     "opciones": [
+      "La lluvia es cero",
+      "Todavía no se reciben datos meteorológicos",
+      "La temperatura es cero",
+      "El caudal ya está medido"
+     ],
+     "correcta": 1,
+     "explicacion": "Ausencia de conexión no demuestra ausencia de lluvia.",
+     "fuentes": "M"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Aprendiz del Campo"
+  },
+  {
+   "codigo": "N1-F04",
+   "titulo": "Entiende ET0 y Kc",
+   "nivel": 1,
+   "contexto": "",
+   "preguntas": [
+    {
+     "enunciado": "¿Qué representa ET0?",
+     "opciones": [
+      "El rango",
+      "La tarifa de energía",
+      "Evapotranspiración de referencia",
+      "El caudal total"
+     ],
+     "correcta": 2,
+     "explicacion": "ET0 corresponde a una referencia y se estima con clima.",
+     "fuentes": "F"
+    },
+    {
+     "enunciado": "¿Qué representa Kc?",
+     "opciones": [
+      "Un coeficiente del cultivo",
+      "Horas de bombeo",
+      "Un volumen de agua",
+      "Una contraseña"
+     ],
+     "correcta": 0,
+     "explicacion": "Kc relaciona la referencia con el cultivo y su etapa.",
+     "fuentes": "F"
+    },
+    {
+     "enunciado": "¿Qué relación utiliza el documento maestro?",
+     "opciones": [
+      "ETc = caudal × tarifa",
+      "ETc = edad ÷ temperatura",
+      "ETc = ET0 + likes",
+      "ETc = ET0 × Kc"
+     ],
+     "correcta": 3,
+     "explicacion": "La relación acordada multiplica ET0 por Kc.",
+     "fuentes": "M,F"
+    },
+    {
+     "enunciado": "¿Se usa siempre el mismo Kc para cualquier etapa?",
+     "opciones": [
+      "Sí, siempre",
+      "Solo depende del usuario",
+      "Depende del tema oscuro",
+      "No, se verifica según cultivo y etapa"
+     ],
+     "correcta": 3,
+     "explicacion": "El coeficiente no es universal.",
+     "fuentes": "F"
+    },
+    {
+     "enunciado": "¿Conocer ETc basta para obtener horas sin otros datos?",
+     "opciones": [
+      "Sí, son la misma unidad",
+      "Sí, si se multiplica por likes",
+      "No, también hacen falta datos del sistema y área",
+      "Sí, con el nombre del usuario"
+     ],
+     "correcta": 2,
+     "explicacion": "Pasar de lámina a volumen y horas requiere más datos.",
+     "fuentes": "U,M"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Aprendiz del Campo"
+  },
+  {
+   "codigo": "N1-F05",
+   "titulo": "Lluvia y decisión",
+   "nivel": 1,
+   "contexto": "",
+   "preguntas": [
+    {
+     "enunciado": "¿Qué efecto puede tener la lluvia prevista en la propuesta?",
+     "opciones": [
+      "Reducir o posponer el riego según su aporte",
+      "Cambiar el rango",
+      "Aumentar siempre las horas",
+      "Eliminar el cultivo"
+     ],
+     "correcta": 0,
+     "explicacion": "El documento contempla descontar lluvia de la necesidad.",
+     "fuentes": "M,L"
+    },
+    {
+     "enunciado": "¿Toda lluvia cubre toda la demanda?",
+     "opciones": [
+      "Sí, si es de noche",
+      "Sí, cualquier gota",
+      "Solo por tener cuenta",
+      "No, depende de su aporte útil"
+     ],
+     "correcta": 3,
+     "explicacion": "El aporte debe compararse con la necesidad.",
+     "fuentes": "L"
+    },
+    {
+     "enunciado": "¿Qué es lluvia efectiva?",
+     "opciones": [
+      "La potencia de la bomba",
+      "Todos los likes",
+      "El nombre de la parcela",
+      "La parte de la lluvia útil para cubrir necesidades del cultivo"
+     ],
+     "correcta": 3,
+     "explicacion": "No toda la lluvia se aprovecha de la misma forma.",
+     "fuentes": "L"
+    },
+    {
+     "enunciado": "¿Qué hacer si la lluvia esperada no ocurre?",
+     "opciones": [
+      "Revisar las condiciones y actualizar la propuesta",
+      "Regar el doble automáticamente",
+      "Cambiar el rango",
+      "Mantenerla sin revisar"
+     ],
+     "correcta": 0,
+     "explicacion": "La decisión debe revisarse si cambian los datos.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "¿Quién decide si sigue una recomendación?",
+     "opciones": [
+      "La bomba sin intervención",
+      "El navegador",
+      "El contador de likes",
+      "El agricultor"
+     ],
+     "correcta": 3,
+     "explicacion": "El proyecto mantiene al agricultor en la decisión.",
+     "fuentes": "M"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Aprendiz del Campo"
+  },
+  {
+   "codigo": "N1-F06",
+   "titulo": "Reconoce el goteo",
+   "nivel": 1,
+   "contexto": "",
+   "preguntas": [
+    {
+     "enunciado": "¿Qué componente entrega agua en un sistema de goteo?",
+     "opciones": [
+      "El contador de puntos",
+      "El emisor o gotero",
+      "El teclado",
+      "El perfil"
+     ],
+     "correcta": 1,
+     "explicacion": "Los emisores entregan agua localizada.",
+     "fuentes": "G"
+    },
+    {
+     "enunciado": "¿Qué permite conocer un caudal total?",
+     "opciones": [
+      "La fecha de cosecha exacta",
+      "El volumen suministrado por unidad de tiempo",
+      "Los likes",
+      "El diagnóstico de una plaga"
+     ],
+     "correcta": 1,
+     "explicacion": "El caudal sirve para relacionar volumen y tiempo.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "¿Qué hacer si una conexión pierde agua?",
+     "opciones": [
+      "Ocultar la publicación",
+      "Aumentar puntos",
+      "Ignorarla",
+      "Revisar y corregir la pérdida"
+     ],
+     "correcta": 3,
+     "explicacion": "La pérdida requiere revisión del sistema, no del perfil.",
+     "fuentes": "G"
+    },
+    {
+     "enunciado": "¿Goteo significa ausencia garantizada de pérdidas?",
+     "opciones": [
+      "Solo por el nombre",
+      "Sí, con modo nocturno",
+      "Sí, siempre",
+      "No, requiere manejo y revisión"
+     ],
+     "correcta": 3,
+     "explicacion": "El tipo de sistema no garantiza su funcionamiento correcto.",
+     "fuentes": "G"
+    },
+    {
+     "enunciado": "¿Qué método también contempla B.A.W.Í.?",
+     "opciones": [
+      "Microaspersión",
+      "Publicación automática",
+      "Cambio de rango",
+      "Reconocimiento de voz obligatorio"
+     ],
+     "correcta": 0,
+     "explicacion": "El documento contempla goteo y microaspersión.",
+     "fuentes": "M"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Aprendiz del Campo"
+  },
+  {
+   "codigo": "N1-F07",
+   "titulo": "Unidades sin confusiones",
+   "nivel": 1,
+   "contexto": "",
+   "preguntas": [
+    {
+     "enunciado": "¿Cuántos litros hay en un metro cúbico?",
+     "opciones": [
+      "1 litro",
+      "10 litros",
+      "1000 litros",
+      "100 litros"
+     ],
+     "correcta": 2,
+     "explicacion": "Un m³ equivale a 1000 L.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "¿Cuál es una unidad de caudal?",
+     "opciones": [
+      "m³/h",
+      "m³ solamente",
+      "Grados Celsius",
+      "kWh"
+     ],
+     "correcta": 0,
+     "explicacion": "El caudal combina volumen y tiempo.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "¿Qué unidad representa tiempo de riego?",
+     "opciones": [
+      "kWh",
+      "m³",
+      "Milímetros cuadrados",
+      "Horas"
+     ],
+     "correcta": 3,
+     "explicacion": "El tiempo se distingue del volumen.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "¿Qué mide kWh?",
+     "opciones": [
+      "Edad",
+      "Volumen",
+      "Energía",
+      "Caudal"
+     ],
+     "correcta": 2,
+     "explicacion": "kWh es una unidad de energía, no de potencia.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "¿Qué mide kW?",
+     "opciones": [
+      "Lluvia",
+      "Lámina de agua",
+      "Potencia",
+      "Energía acumulada"
+     ],
+     "correcta": 2,
+     "explicacion": "La potencia y la energía son magnitudes distintas.",
+     "fuentes": "U"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Aprendiz del Campo"
+  },
+  {
+   "codigo": "N1-F08",
+   "titulo": "Observa antes de concluir",
+   "nivel": 1,
+   "contexto": "",
+   "preguntas": [
+    {
+     "enunciado": "¿Cuál es una observación directa?",
+     "opciones": [
+      "Se ve agua saliendo de una unión",
+      "Siempre falta agua",
+      "El árbol requiere una cifra universal",
+      "Seguro es una plaga"
+     ],
+     "correcta": 0,
+     "explicacion": "Describe lo observado antes de atribuir una causa.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "¿Qué aporta una fotografía a una duda?",
+     "opciones": [
+      "Una tarifa validada",
+      "Un diagnóstico seguro",
+      "Contexto visual de lo observado",
+      "Un caudal medido"
+     ],
+     "correcta": 2,
+     "explicacion": "Una fotografía ayuda a describir, no prueba todo por sí sola.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "¿Qué hacer si las hojas presentan un problema?",
+     "opciones": [
+      "Regar el doble siempre",
+      "Recopilar contexto antes de asumir la causa",
+      "Cancelar siempre",
+      "Aumentar likes"
+     ],
+     "correcta": 1,
+     "explicacion": "Una señal aislada no establece una única causa.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "¿Qué significa que una recomendación funcionó a otra persona?",
+     "opciones": [
+      "Que tuvo un resultado favorable en su contexto",
+      "Que ya se midió tu parcela",
+      "Que sirve en cualquier lugar",
+      "Que garantiza curación"
+     ],
+     "correcta": 0,
+     "explicacion": "La experiencia debe interpretarse con su contexto.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "¿Qué dato ayuda a contextualizar una duda del foro?",
+     "opciones": [
+      "Número de pestañas",
+      "Nombre de la red wifi",
+      "Zona del cultivo",
+      "Color del dispositivo"
+     ],
+     "correcta": 2,
+     "explicacion": "La ubicación aproximada ayuda a entender el contexto.",
+     "fuentes": "M"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Aprendiz del Campo"
+  },
+  {
+   "codigo": "N1-F09",
+   "titulo": "Las tres decisiones",
+   "nivel": 1,
+   "contexto": "",
+   "preguntas": [
+    {
+     "enunciado": "¿Qué acciones conserva el agricultor?",
+     "opciones": [
+      "Aceptar, ajustar o rechazar",
+      "Solo comentar",
+      "Esperar riego automático",
+      "Solo aceptar"
+     ],
+     "correcta": 0,
+     "explicacion": "Las tres acciones están definidas en el documento.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "¿Qué debe acompañar un ajuste de horas?",
+     "opciones": [
+      "Un precio inventado",
+      "Un rango nuevo",
+      "Un motivo",
+      "Un like externo"
+     ],
+     "correcta": 2,
+     "explicacion": "La modificación debe quedar explicada.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "¿Qué debe acompañar un rechazo?",
+     "opciones": [
+      "Una contraseña pública",
+      "Una nueva tarifa",
+      "Una razón",
+      "Un puntaje"
+     ],
+     "correcta": 2,
+     "explicacion": "Se registra por qué no se sigue la recomendación.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "¿Aceptar activa automáticamente una bomba en la maqueta?",
+     "opciones": [
+      "No, registra una decisión visual",
+      "Sí, siempre",
+      "Sí, sin equipo",
+      "Sí, con cuenta"
+     ],
+     "correcta": 0,
+     "explicacion": "El proyecto no debe convertirse en riego autónomo.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "¿Dónde consultar decisiones anteriores?",
+     "opciones": [
+      "En el logo",
+      "En Guardados de Comunidad",
+      "En el contador de likes",
+      "En el historial"
+     ],
+     "correcta": 3,
+     "explicacion": "El historial reúne aceptaciones, ajustes y rechazos.",
+     "fuentes": "M"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Aprendiz del Campo"
+  },
+  {
+   "codigo": "N1-F10",
+   "titulo": "Impacto y conocimiento",
+   "nivel": 1,
+   "contexto": "",
+   "preguntas": [
+    {
+     "enunciado": "¿Qué magnitud muestra ahorro de agua?",
+     "opciones": [
+      "Grados Celsius",
+      "m³",
+      "kWh",
+      "Puntos"
+     ],
+     "correcta": 1,
+     "explicacion": "El ahorro de agua se expresa como volumen.",
+     "fuentes": "U,M"
+    },
+    {
+     "enunciado": "¿Qué magnitud muestra energía evitada?",
+     "opciones": [
+      "Likes",
+      "kWh",
+      "Milímetros",
+      "m³/h"
+     ],
+     "correcta": 1,
+     "explicacion": "El impacto energético se expresa en energía.",
+     "fuentes": "U,M"
+    },
+    {
+     "enunciado": "¿Qué referencia tarifaria menciona el proyecto?",
+     "opciones": [
+      "Un precio elegido al azar",
+      "Tarifa 9-CU de CFE",
+      "Una cifra del foro",
+      "El rango del usuario"
+     ],
+     "correcta": 1,
+     "explicacion": "La tarifa está mencionada, pero su valor debe verificarse.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "¿Hay rangos y puntos dentro de la app de Riego?",
+     "opciones": [
+      "Dependen del caudal",
+      "No, pertenecen a Comunidad",
+      "Solo en el historial",
+      "Sí, en cada parcela"
+     ],
+     "correcta": 1,
+     "explicacion": "El documento separa los rangos de la app de Riego.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "¿Qué busca Aprende el Porqué?",
+     "opciones": [
+      "Ocultar los datos",
+      "Dar diagnósticos universales",
+      "Activar bombas",
+      "Explicar la recomendación en lenguaje sencillo"
+     ],
+     "correcta": 3,
+     "explicacion": "El proyecto prioriza capacitación y decisión informada.",
+     "fuentes": "M"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Aprendiz del Campo"
+  },
+  {
+   "codigo": "N2-F01",
+   "titulo": "Interpretación de datos del caso 1",
+   "nivel": 2,
+   "contexto": "Caso 1 simulado: ET0=5 mm/día; Kc=0.5; lluvia efectiva prevista=1.25 mm/día. Para una operación independiente: volumen=24 m³, caudal constante=4 m³/h y potencia eléctrica constante=3 kW. Estos valores no corresponden a un cultivo real. Para el balance didáctico, necesidad=max(0, ETc−lluvia efectiva), sin otras entradas, reservas ni pérdidas.",
+   "preguntas": [
+    {
+     "enunciado": "Caso 1: ¿cuál es ETc con los datos indicados?",
+     "opciones": [
+      "5.5 mm/día",
+      "2.5 mm/día",
+      "10 mm/día",
+      "5 mm/día"
+     ],
+     "correcta": 1,
+     "explicacion": "Multiplicar ET0 por Kc.",
+     "fuentes": "F,U"
+    },
+    {
+     "enunciado": "Caso 1: ¿qué necesidad simplificada queda tras descontar la lluvia?",
+     "opciones": [
+      "3.75 mm/día",
+      "0 mm/día",
+      "1.25 mm/día",
+      "2.5 mm/día"
+     ],
+     "correcta": 2,
+     "explicacion": "El aporte previsto cubre la mitad, no toda la demanda.",
+     "fuentes": "L,U"
+    },
+    {
+     "enunciado": "Caso 1: ¿cuántas horas entrega el volumen indicado con caudal constante?",
+     "opciones": [
+      "96 h",
+      "4 h",
+      "6 h",
+      "24 h"
+     ],
+     "correcta": 2,
+     "explicacion": "Tiempo=volumen/caudal.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Caso 1: si la lluvia prevista no ocurre, ¿qué dato del balance debe revisarse?",
+     "opciones": [
+      "El aporte de lluvia antes de actualizar la necesidad",
+      "El color de la tarjeta",
+      "Solo el nombre del usuario",
+      "Solo el rango"
+     ],
+     "correcta": 0,
+     "explicacion": "Una previsión incumplida cambia la información del balance.",
+     "fuentes": "M,L"
+    },
+    {
+     "enunciado": "Caso 1: ¿cuál es la energía de la operación de 6 horas?",
+     "opciones": [
+      "3 kWh",
+      "9 kWh",
+      "18 kWh",
+      "36 kWh"
+     ],
+     "correcta": 2,
+     "explicacion": "Energía=potencia eléctrica constante×tiempo.",
+     "fuentes": "U"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Técnico de Riego"
+  },
+  {
+   "codigo": "N2-F02",
+   "titulo": "Interpretación de datos del caso 2",
+   "nivel": 2,
+   "contexto": "Caso 2 simulado: ET0=6 mm/día; Kc=0.5; lluvia efectiva prevista=1.5 mm/día. Para una operación independiente: volumen=28 m³, caudal constante=4 m³/h y potencia eléctrica constante=4 kW. Estos valores no corresponden a un cultivo real. Para el balance didáctico, necesidad=max(0, ETc−lluvia efectiva), sin otras entradas, reservas ni pérdidas.",
+   "preguntas": [
+    {
+     "enunciado": "Caso 2: ¿cuál es ETc con los datos indicados?",
+     "opciones": [
+      "6.5 mm/día",
+      "12 mm/día",
+      "3 mm/día",
+      "6 mm/día"
+     ],
+     "correcta": 2,
+     "explicacion": "Multiplicar ET0 por Kc.",
+     "fuentes": "F,U"
+    },
+    {
+     "enunciado": "Caso 2: ¿qué necesidad simplificada queda tras descontar la lluvia?",
+     "opciones": [
+      "4.5 mm/día",
+      "0 mm/día",
+      "1.5 mm/día",
+      "3 mm/día"
+     ],
+     "correcta": 2,
+     "explicacion": "El aporte previsto cubre la mitad, no toda la demanda.",
+     "fuentes": "L,U"
+    },
+    {
+     "enunciado": "Caso 2: ¿cuántas horas entrega el volumen indicado con caudal constante?",
+     "opciones": [
+      "4 h",
+      "28 h",
+      "7 h",
+      "112 h"
+     ],
+     "correcta": 2,
+     "explicacion": "Tiempo=volumen/caudal.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Caso 2: si la lluvia prevista no ocurre, ¿qué dato del balance debe revisarse?",
+     "opciones": [
+      "Solo el rango",
+      "El aporte de lluvia antes de actualizar la necesidad",
+      "Solo el nombre del usuario",
+      "El color de la tarjeta"
+     ],
+     "correcta": 1,
+     "explicacion": "Una previsión incumplida cambia la información del balance.",
+     "fuentes": "M,L"
+    },
+    {
+     "enunciado": "Caso 2: ¿cuál es la energía de la operación de 7 horas?",
+     "opciones": [
+      "4 kWh",
+      "11 kWh",
+      "28 kWh",
+      "56 kWh"
+     ],
+     "correcta": 2,
+     "explicacion": "Energía=potencia eléctrica constante×tiempo.",
+     "fuentes": "U"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Técnico de Riego"
+  },
+  {
+   "codigo": "N2-F03",
+   "titulo": "Interpretación de datos del caso 3",
+   "nivel": 2,
+   "contexto": "Caso 3 simulado: ET0=7 mm/día; Kc=0.5; lluvia efectiva prevista=1.75 mm/día. Para una operación independiente: volumen=32 m³, caudal constante=4 m³/h y potencia eléctrica constante=5 kW. Estos valores no corresponden a un cultivo real. Para el balance didáctico, necesidad=max(0, ETc−lluvia efectiva), sin otras entradas, reservas ni pérdidas.",
+   "preguntas": [
+    {
+     "enunciado": "Caso 3: ¿cuál es ETc con los datos indicados?",
+     "opciones": [
+      "14 mm/día",
+      "7.5 mm/día",
+      "3.5 mm/día",
+      "7 mm/día"
+     ],
+     "correcta": 2,
+     "explicacion": "Multiplicar ET0 por Kc.",
+     "fuentes": "F,U"
+    },
+    {
+     "enunciado": "Caso 3: ¿qué necesidad simplificada queda tras descontar la lluvia?",
+     "opciones": [
+      "3.5 mm/día",
+      "0 mm/día",
+      "5.25 mm/día",
+      "1.75 mm/día"
+     ],
+     "correcta": 3,
+     "explicacion": "El aporte previsto cubre la mitad, no toda la demanda.",
+     "fuentes": "L,U"
+    },
+    {
+     "enunciado": "Caso 3: ¿cuántas horas entrega el volumen indicado con caudal constante?",
+     "opciones": [
+      "32 h",
+      "8 h",
+      "128 h",
+      "4 h"
+     ],
+     "correcta": 1,
+     "explicacion": "Tiempo=volumen/caudal.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Caso 3: si la lluvia prevista no ocurre, ¿qué dato del balance debe revisarse?",
+     "opciones": [
+      "El color de la tarjeta",
+      "Solo el nombre del usuario",
+      "El aporte de lluvia antes de actualizar la necesidad",
+      "Solo el rango"
+     ],
+     "correcta": 2,
+     "explicacion": "Una previsión incumplida cambia la información del balance.",
+     "fuentes": "M,L"
+    },
+    {
+     "enunciado": "Caso 3: ¿cuál es la energía de la operación de 8 horas?",
+     "opciones": [
+      "80 kWh",
+      "5 kWh",
+      "40 kWh",
+      "13 kWh"
+     ],
+     "correcta": 2,
+     "explicacion": "Energía=potencia eléctrica constante×tiempo.",
+     "fuentes": "U"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Técnico de Riego"
+  },
+  {
+   "codigo": "N2-F04",
+   "titulo": "Interpretación de datos del caso 4",
+   "nivel": 2,
+   "contexto": "Caso 4 simulado: ET0=8 mm/día; Kc=0.5; lluvia efectiva prevista=2 mm/día. Para una operación independiente: volumen=36 m³, caudal constante=4 m³/h y potencia eléctrica constante=6 kW. Estos valores no corresponden a un cultivo real. Para el balance didáctico, necesidad=max(0, ETc−lluvia efectiva), sin otras entradas, reservas ni pérdidas.",
+   "preguntas": [
+    {
+     "enunciado": "Caso 4: ¿cuál es ETc con los datos indicados?",
+     "opciones": [
+      "8 mm/día",
+      "4 mm/día",
+      "8.5 mm/día",
+      "16 mm/día"
+     ],
+     "correcta": 1,
+     "explicacion": "Multiplicar ET0 por Kc.",
+     "fuentes": "F,U"
+    },
+    {
+     "enunciado": "Caso 4: ¿qué necesidad simplificada queda tras descontar la lluvia?",
+     "opciones": [
+      "2 mm/día",
+      "6 mm/día",
+      "0 mm/día",
+      "4 mm/día"
+     ],
+     "correcta": 0,
+     "explicacion": "El aporte previsto cubre la mitad, no toda la demanda.",
+     "fuentes": "L,U"
+    },
+    {
+     "enunciado": "Caso 4: ¿cuántas horas entrega el volumen indicado con caudal constante?",
+     "opciones": [
+      "36 h",
+      "144 h",
+      "4 h",
+      "9 h"
+     ],
+     "correcta": 3,
+     "explicacion": "Tiempo=volumen/caudal.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Caso 4: si la lluvia prevista no ocurre, ¿qué dato del balance debe revisarse?",
+     "opciones": [
+      "Solo el nombre del usuario",
+      "El color de la tarjeta",
+      "Solo el rango",
+      "El aporte de lluvia antes de actualizar la necesidad"
+     ],
+     "correcta": 3,
+     "explicacion": "Una previsión incumplida cambia la información del balance.",
+     "fuentes": "M,L"
+    },
+    {
+     "enunciado": "Caso 4: ¿cuál es la energía de la operación de 9 horas?",
+     "opciones": [
+      "108 kWh",
+      "15 kWh",
+      "54 kWh",
+      "6 kWh"
+     ],
+     "correcta": 2,
+     "explicacion": "Energía=potencia eléctrica constante×tiempo.",
+     "fuentes": "U"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Técnico de Riego"
+  },
+  {
+   "codigo": "N2-F05",
+   "titulo": "Interpretación de datos del caso 5",
+   "nivel": 2,
+   "contexto": "Caso 5 simulado: ET0=9 mm/día; Kc=0.5; lluvia efectiva prevista=2.25 mm/día. Para una operación independiente: volumen=40 m³, caudal constante=4 m³/h y potencia eléctrica constante=7 kW. Estos valores no corresponden a un cultivo real. Para el balance didáctico, necesidad=max(0, ETc−lluvia efectiva), sin otras entradas, reservas ni pérdidas.",
+   "preguntas": [
+    {
+     "enunciado": "Caso 5: ¿cuál es ETc con los datos indicados?",
+     "opciones": [
+      "9 mm/día",
+      "18 mm/día",
+      "9.5 mm/día",
+      "4.5 mm/día"
+     ],
+     "correcta": 3,
+     "explicacion": "Multiplicar ET0 por Kc.",
+     "fuentes": "F,U"
+    },
+    {
+     "enunciado": "Caso 5: ¿qué necesidad simplificada queda tras descontar la lluvia?",
+     "opciones": [
+      "0 mm/día",
+      "2.25 mm/día",
+      "6.75 mm/día",
+      "4.5 mm/día"
+     ],
+     "correcta": 1,
+     "explicacion": "El aporte previsto cubre la mitad, no toda la demanda.",
+     "fuentes": "L,U"
+    },
+    {
+     "enunciado": "Caso 5: ¿cuántas horas entrega el volumen indicado con caudal constante?",
+     "opciones": [
+      "4 h",
+      "160 h",
+      "10 h",
+      "40 h"
+     ],
+     "correcta": 2,
+     "explicacion": "Tiempo=volumen/caudal.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Caso 5: si la lluvia prevista no ocurre, ¿qué dato del balance debe revisarse?",
+     "opciones": [
+      "El color de la tarjeta",
+      "El aporte de lluvia antes de actualizar la necesidad",
+      "Solo el rango",
+      "Solo el nombre del usuario"
+     ],
+     "correcta": 1,
+     "explicacion": "Una previsión incumplida cambia la información del balance.",
+     "fuentes": "M,L"
+    },
+    {
+     "enunciado": "Caso 5: ¿cuál es la energía de la operación de 10 horas?",
+     "opciones": [
+      "70 kWh",
+      "140 kWh",
+      "17 kWh",
+      "7 kWh"
+     ],
+     "correcta": 0,
+     "explicacion": "Energía=potencia eléctrica constante×tiempo.",
+     "fuentes": "U"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Técnico de Riego"
+  },
+  {
+   "codigo": "N2-F06",
+   "titulo": "Interpretación de datos del caso 6",
+   "nivel": 2,
+   "contexto": "Caso 6 simulado: ET0=10 mm/día; Kc=0.5; lluvia efectiva prevista=2.5 mm/día. Para una operación independiente: volumen=44 m³, caudal constante=4 m³/h y potencia eléctrica constante=8 kW. Estos valores no corresponden a un cultivo real. Para el balance didáctico, necesidad=max(0, ETc−lluvia efectiva), sin otras entradas, reservas ni pérdidas.",
+   "preguntas": [
+    {
+     "enunciado": "Caso 6: ¿cuál es ETc con los datos indicados?",
+     "opciones": [
+      "10 mm/día",
+      "10.5 mm/día",
+      "20 mm/día",
+      "5 mm/día"
+     ],
+     "correcta": 3,
+     "explicacion": "Multiplicar ET0 por Kc.",
+     "fuentes": "F,U"
+    },
+    {
+     "enunciado": "Caso 6: ¿qué necesidad simplificada queda tras descontar la lluvia?",
+     "opciones": [
+      "2.5 mm/día",
+      "7.5 mm/día",
+      "0 mm/día",
+      "5 mm/día"
+     ],
+     "correcta": 0,
+     "explicacion": "El aporte previsto cubre la mitad, no toda la demanda.",
+     "fuentes": "L,U"
+    },
+    {
+     "enunciado": "Caso 6: ¿cuántas horas entrega el volumen indicado con caudal constante?",
+     "opciones": [
+      "11 h",
+      "4 h",
+      "176 h",
+      "44 h"
+     ],
+     "correcta": 0,
+     "explicacion": "Tiempo=volumen/caudal.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Caso 6: si la lluvia prevista no ocurre, ¿qué dato del balance debe revisarse?",
+     "opciones": [
+      "El aporte de lluvia antes de actualizar la necesidad",
+      "Solo el rango",
+      "El color de la tarjeta",
+      "Solo el nombre del usuario"
+     ],
+     "correcta": 0,
+     "explicacion": "Una previsión incumplida cambia la información del balance.",
+     "fuentes": "M,L"
+    },
+    {
+     "enunciado": "Caso 6: ¿cuál es la energía de la operación de 11 horas?",
+     "opciones": [
+      "19 kWh",
+      "88 kWh",
+      "8 kWh",
+      "176 kWh"
+     ],
+     "correcta": 1,
+     "explicacion": "Energía=potencia eléctrica constante×tiempo.",
+     "fuentes": "U"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Técnico de Riego"
+  },
+  {
+   "codigo": "N2-F07",
+   "titulo": "Interpretación de datos del caso 7",
+   "nivel": 2,
+   "contexto": "Caso 7 simulado: ET0=11 mm/día; Kc=0.5; lluvia efectiva prevista=2.75 mm/día. Para una operación independiente: volumen=48 m³, caudal constante=4 m³/h y potencia eléctrica constante=9 kW. Estos valores no corresponden a un cultivo real. Para el balance didáctico, necesidad=max(0, ETc−lluvia efectiva), sin otras entradas, reservas ni pérdidas.",
+   "preguntas": [
+    {
+     "enunciado": "Caso 7: ¿cuál es ETc con los datos indicados?",
+     "opciones": [
+      "11.5 mm/día",
+      "5.5 mm/día",
+      "22 mm/día",
+      "11 mm/día"
+     ],
+     "correcta": 1,
+     "explicacion": "Multiplicar ET0 por Kc.",
+     "fuentes": "F,U"
+    },
+    {
+     "enunciado": "Caso 7: ¿qué necesidad simplificada queda tras descontar la lluvia?",
+     "opciones": [
+      "2.75 mm/día",
+      "8.25 mm/día",
+      "0 mm/día",
+      "5.5 mm/día"
+     ],
+     "correcta": 0,
+     "explicacion": "El aporte previsto cubre la mitad, no toda la demanda.",
+     "fuentes": "L,U"
+    },
+    {
+     "enunciado": "Caso 7: ¿cuántas horas entrega el volumen indicado con caudal constante?",
+     "opciones": [
+      "192 h",
+      "48 h",
+      "4 h",
+      "12 h"
+     ],
+     "correcta": 3,
+     "explicacion": "Tiempo=volumen/caudal.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Caso 7: si la lluvia prevista no ocurre, ¿qué dato del balance debe revisarse?",
+     "opciones": [
+      "Solo el rango",
+      "Solo el nombre del usuario",
+      "El color de la tarjeta",
+      "El aporte de lluvia antes de actualizar la necesidad"
+     ],
+     "correcta": 3,
+     "explicacion": "Una previsión incumplida cambia la información del balance.",
+     "fuentes": "M,L"
+    },
+    {
+     "enunciado": "Caso 7: ¿cuál es la energía de la operación de 12 horas?",
+     "opciones": [
+      "216 kWh",
+      "9 kWh",
+      "108 kWh",
+      "21 kWh"
+     ],
+     "correcta": 2,
+     "explicacion": "Energía=potencia eléctrica constante×tiempo.",
+     "fuentes": "U"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Técnico de Riego"
+  },
+  {
+   "codigo": "N2-F08",
+   "titulo": "Interpretación de datos del caso 8",
+   "nivel": 2,
+   "contexto": "Caso 8 simulado: ET0=12 mm/día; Kc=0.5; lluvia efectiva prevista=3 mm/día. Para una operación independiente: volumen=52 m³, caudal constante=4 m³/h y potencia eléctrica constante=10 kW. Estos valores no corresponden a un cultivo real. Para el balance didáctico, necesidad=max(0, ETc−lluvia efectiva), sin otras entradas, reservas ni pérdidas.",
+   "preguntas": [
+    {
+     "enunciado": "Caso 8: ¿cuál es ETc con los datos indicados?",
+     "opciones": [
+      "24 mm/día",
+      "12.5 mm/día",
+      "12 mm/día",
+      "6 mm/día"
+     ],
+     "correcta": 3,
+     "explicacion": "Multiplicar ET0 por Kc.",
+     "fuentes": "F,U"
+    },
+    {
+     "enunciado": "Caso 8: ¿qué necesidad simplificada queda tras descontar la lluvia?",
+     "opciones": [
+      "0 mm/día",
+      "9 mm/día",
+      "3 mm/día",
+      "6 mm/día"
+     ],
+     "correcta": 2,
+     "explicacion": "El aporte previsto cubre la mitad, no toda la demanda.",
+     "fuentes": "L,U"
+    },
+    {
+     "enunciado": "Caso 8: ¿cuántas horas entrega el volumen indicado con caudal constante?",
+     "opciones": [
+      "208 h",
+      "52 h",
+      "4 h",
+      "13 h"
+     ],
+     "correcta": 3,
+     "explicacion": "Tiempo=volumen/caudal.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Caso 8: si la lluvia prevista no ocurre, ¿qué dato del balance debe revisarse?",
+     "opciones": [
+      "Solo el rango",
+      "El aporte de lluvia antes de actualizar la necesidad",
+      "El color de la tarjeta",
+      "Solo el nombre del usuario"
+     ],
+     "correcta": 1,
+     "explicacion": "Una previsión incumplida cambia la información del balance.",
+     "fuentes": "M,L"
+    },
+    {
+     "enunciado": "Caso 8: ¿cuál es la energía de la operación de 13 horas?",
+     "opciones": [
+      "130 kWh",
+      "260 kWh",
+      "10 kWh",
+      "23 kWh"
+     ],
+     "correcta": 0,
+     "explicacion": "Energía=potencia eléctrica constante×tiempo.",
+     "fuentes": "U"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Técnico de Riego"
+  },
+  {
+   "codigo": "N2-F09",
+   "titulo": "Interpretación de datos del caso 9",
+   "nivel": 2,
+   "contexto": "Caso 9 simulado: ET0=13 mm/día; Kc=0.5; lluvia efectiva prevista=3.25 mm/día. Para una operación independiente: volumen=56 m³, caudal constante=4 m³/h y potencia eléctrica constante=11 kW. Estos valores no corresponden a un cultivo real. Para el balance didáctico, necesidad=max(0, ETc−lluvia efectiva), sin otras entradas, reservas ni pérdidas.",
+   "preguntas": [
+    {
+     "enunciado": "Caso 9: ¿cuál es ETc con los datos indicados?",
+     "opciones": [
+      "6.5 mm/día",
+      "26 mm/día",
+      "13 mm/día",
+      "13.5 mm/día"
+     ],
+     "correcta": 0,
+     "explicacion": "Multiplicar ET0 por Kc.",
+     "fuentes": "F,U"
+    },
+    {
+     "enunciado": "Caso 9: ¿qué necesidad simplificada queda tras descontar la lluvia?",
+     "opciones": [
+      "6.5 mm/día",
+      "0 mm/día",
+      "9.75 mm/día",
+      "3.25 mm/día"
+     ],
+     "correcta": 3,
+     "explicacion": "El aporte previsto cubre la mitad, no toda la demanda.",
+     "fuentes": "L,U"
+    },
+    {
+     "enunciado": "Caso 9: ¿cuántas horas entrega el volumen indicado con caudal constante?",
+     "opciones": [
+      "56 h",
+      "14 h",
+      "4 h",
+      "224 h"
+     ],
+     "correcta": 1,
+     "explicacion": "Tiempo=volumen/caudal.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Caso 9: si la lluvia prevista no ocurre, ¿qué dato del balance debe revisarse?",
+     "opciones": [
+      "El aporte de lluvia antes de actualizar la necesidad",
+      "Solo el rango",
+      "El color de la tarjeta",
+      "Solo el nombre del usuario"
+     ],
+     "correcta": 0,
+     "explicacion": "Una previsión incumplida cambia la información del balance.",
+     "fuentes": "M,L"
+    },
+    {
+     "enunciado": "Caso 9: ¿cuál es la energía de la operación de 14 horas?",
+     "opciones": [
+      "11 kWh",
+      "154 kWh",
+      "25 kWh",
+      "308 kWh"
+     ],
+     "correcta": 1,
+     "explicacion": "Energía=potencia eléctrica constante×tiempo.",
+     "fuentes": "U"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Técnico de Riego"
+  },
+  {
+   "codigo": "N2-F10",
+   "titulo": "Interpretación de datos del caso 10",
+   "nivel": 2,
+   "contexto": "Caso 10 simulado: ET0=14 mm/día; Kc=0.5; lluvia efectiva prevista=3.5 mm/día. Para una operación independiente: volumen=60 m³, caudal constante=4 m³/h y potencia eléctrica constante=12 kW. Estos valores no corresponden a un cultivo real. Para el balance didáctico, necesidad=max(0, ETc−lluvia efectiva), sin otras entradas, reservas ni pérdidas.",
+   "preguntas": [
+    {
+     "enunciado": "Caso 10: ¿cuál es ETc con los datos indicados?",
+     "opciones": [
+      "7 mm/día",
+      "14 mm/día",
+      "14.5 mm/día",
+      "28 mm/día"
+     ],
+     "correcta": 0,
+     "explicacion": "Multiplicar ET0 por Kc.",
+     "fuentes": "F,U"
+    },
+    {
+     "enunciado": "Caso 10: ¿qué necesidad simplificada queda tras descontar la lluvia?",
+     "opciones": [
+      "3.5 mm/día",
+      "0 mm/día",
+      "10.5 mm/día",
+      "7 mm/día"
+     ],
+     "correcta": 0,
+     "explicacion": "El aporte previsto cubre la mitad, no toda la demanda.",
+     "fuentes": "L,U"
+    },
+    {
+     "enunciado": "Caso 10: ¿cuántas horas entrega el volumen indicado con caudal constante?",
+     "opciones": [
+      "4 h",
+      "15 h",
+      "60 h",
+      "240 h"
+     ],
+     "correcta": 1,
+     "explicacion": "Tiempo=volumen/caudal.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Caso 10: si la lluvia prevista no ocurre, ¿qué dato del balance debe revisarse?",
+     "opciones": [
+      "Solo el rango",
+      "Solo el nombre del usuario",
+      "El color de la tarjeta",
+      "El aporte de lluvia antes de actualizar la necesidad"
+     ],
+     "correcta": 3,
+     "explicacion": "Una previsión incumplida cambia la información del balance.",
+     "fuentes": "M,L"
+    },
+    {
+     "enunciado": "Caso 10: ¿cuál es la energía de la operación de 15 horas?",
+     "opciones": [
+      "360 kWh",
+      "12 kWh",
+      "180 kWh",
+      "27 kWh"
+     ],
+     "correcta": 2,
+     "explicacion": "Energía=potencia eléctrica constante×tiempo.",
+     "fuentes": "U"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Técnico de Riego"
+  },
+  {
+   "codigo": "N3-F01",
+   "titulo": "Cálculo y comparación de la parcela simulada 1",
+   "nivel": 3,
+   "contexto": "Ejercicio 1 simulado: ET0=5 mm/día, Kc=0.8, lluvia efectiva=0.4 mm/día, área=1000 m², eficiencia de aplicación=0.8 y caudal constante=2 m³/h. Usar necesidad=max(0,ETc−lluvia), volumen neto=lámina×área/1000, volumen bruto=neto/eficiencia y horas=bruto/caudal. No considerar otras reservas, entradas o pérdidas. Comparación energética: referencia=4.25 h, nueva duración calculada y potencia eléctrica constante=4 kW.",
+   "preguntas": [
+    {
+     "enunciado": "Parcela simulada 1: ¿qué lámina neta resulta del balance indicado?",
+     "opciones": [
+      "3.6 mm",
+      "10.8 mm",
+      "4 mm",
+      "4.4 mm"
+     ],
+     "correcta": 0,
+     "explicacion": "Primero ETc=ET0×Kc; después descontar el aporte efectivo del periodo.",
+     "fuentes": "F,L,U"
+    },
+    {
+     "enunciado": "Parcela simulada 1: ¿qué volumen neto corresponde a esa lámina?",
+     "opciones": [
+      "0.36 m³",
+      "3.6 m³",
+      "3600 m³",
+      "7.2 m³"
+     ],
+     "correcta": 1,
+     "explicacion": "1 mm sobre 1 m² equivale a 0.001 m³.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 1: con eficiencia 0.8, ¿qué volumen bruto se requiere?",
+     "opciones": [
+      "9 m³",
+      "4.5 m³",
+      "3.6 m³",
+      "2.88 m³"
+     ],
+     "correcta": 1,
+     "explicacion": "Dividir el volumen neto por la eficiencia indicada. No asumirla universal.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 1: ¿qué duración corresponde al caudal indicado?",
+     "opciones": [
+      "4.5 h",
+      "2.25 h",
+      "9 h",
+      "1.8 h"
+     ],
+     "correcta": 1,
+     "explicacion": "Usar volumen bruto/caudal, conservando las unidades.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 1: frente a la referencia del caso, ¿cuánta energía se evitaría?",
+     "opciones": [
+      "8 kWh",
+      "4 kWh",
+      "16 kWh",
+      "9 kWh"
+     ],
+     "correcta": 0,
+     "explicacion": "La diferencia es 2 horas; multiplicarla por la potencia eléctrica constante. Es una comparación hipotética.",
+     "fuentes": "U"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Especialista Agrónomo"
+  },
+  {
+   "codigo": "N3-F02",
+   "titulo": "Cálculo y comparación de la parcela simulada 2",
+   "nivel": 3,
+   "contexto": "Ejercicio 2 simulado: ET0=6 mm/día, Kc=0.8, lluvia efectiva=0.8 mm/día, área=2000 m², eficiencia de aplicación=0.8 y caudal constante=4 m³/h. Usar necesidad=max(0,ETc−lluvia), volumen neto=lámina×área/1000, volumen bruto=neto/eficiencia y horas=bruto/caudal. No considerar otras reservas, entradas o pérdidas. Comparación energética: referencia=4.5 h, nueva duración calculada y potencia eléctrica constante=5 kW.",
+   "preguntas": [
+    {
+     "enunciado": "Parcela simulada 2: ¿qué lámina neta resulta del balance indicado?",
+     "opciones": [
+      "12 mm",
+      "4.8 mm",
+      "5.6 mm",
+      "4 mm"
+     ],
+     "correcta": 3,
+     "explicacion": "Primero ETc=ET0×Kc; después descontar el aporte efectivo del periodo.",
+     "fuentes": "F,L,U"
+    },
+    {
+     "enunciado": "Parcela simulada 2: ¿qué volumen neto corresponde a esa lámina?",
+     "opciones": [
+      "16 m³",
+      "8 m³",
+      "0.8 m³",
+      "8000 m³"
+     ],
+     "correcta": 1,
+     "explicacion": "1 mm sobre 1 m² equivale a 0.001 m³.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 2: con eficiencia 0.8, ¿qué volumen bruto se requiere?",
+     "opciones": [
+      "6.4 m³",
+      "8 m³",
+      "10 m³",
+      "20 m³"
+     ],
+     "correcta": 2,
+     "explicacion": "Dividir el volumen neto por la eficiencia indicada. No asumirla universal.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 2: ¿qué duración corresponde al caudal indicado?",
+     "opciones": [
+      "40 h",
+      "5 h",
+      "2.5 h",
+      "2 h"
+     ],
+     "correcta": 2,
+     "explicacion": "Usar volumen bruto/caudal, conservando las unidades.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 2: frente a la referencia del caso, ¿cuánta energía se evitaría?",
+     "opciones": [
+      "5 kWh",
+      "10 kWh",
+      "20 kWh",
+      "11 kWh"
+     ],
+     "correcta": 1,
+     "explicacion": "La diferencia es 2 horas; multiplicarla por la potencia eléctrica constante. Es una comparación hipotética.",
+     "fuentes": "U"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Especialista Agrónomo"
+  },
+  {
+   "codigo": "N3-F03",
+   "titulo": "Cálculo y comparación de la parcela simulada 3",
+   "nivel": 3,
+   "contexto": "Ejercicio 3 simulado: ET0=7 mm/día, Kc=0.8, lluvia efectiva=1.2 mm/día, área=3000 m², eficiencia de aplicación=0.8 y caudal constante=6 m³/h. Usar necesidad=max(0,ETc−lluvia), volumen neto=lámina×área/1000, volumen bruto=neto/eficiencia y horas=bruto/caudal. No considerar otras reservas, entradas o pérdidas. Comparación energética: referencia=4.75 h, nueva duración calculada y potencia eléctrica constante=6 kW.",
+   "preguntas": [
+    {
+     "enunciado": "Parcela simulada 3: ¿qué lámina neta resulta del balance indicado?",
+     "opciones": [
+      "13.2 mm",
+      "6.8 mm",
+      "5.6 mm",
+      "4.4 mm"
+     ],
+     "correcta": 3,
+     "explicacion": "Primero ETc=ET0×Kc; después descontar el aporte efectivo del periodo.",
+     "fuentes": "F,L,U"
+    },
+    {
+     "enunciado": "Parcela simulada 3: ¿qué volumen neto corresponde a esa lámina?",
+     "opciones": [
+      "1.32 m³",
+      "13200 m³",
+      "26.4 m³",
+      "13.2 m³"
+     ],
+     "correcta": 3,
+     "explicacion": "1 mm sobre 1 m² equivale a 0.001 m³.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 3: con eficiencia 0.8, ¿qué volumen bruto se requiere?",
+     "opciones": [
+      "10.56 m³",
+      "16.5 m³",
+      "33 m³",
+      "13.2 m³"
+     ],
+     "correcta": 1,
+     "explicacion": "Dividir el volumen neto por la eficiencia indicada. No asumirla universal.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 3: ¿qué duración corresponde al caudal indicado?",
+     "opciones": [
+      "2.2 h",
+      "99 h",
+      "2.75 h",
+      "5.5 h"
+     ],
+     "correcta": 2,
+     "explicacion": "Usar volumen bruto/caudal, conservando las unidades.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 3: frente a la referencia del caso, ¿cuánta energía se evitaría?",
+     "opciones": [
+      "24 kWh",
+      "6 kWh",
+      "12 kWh",
+      "13 kWh"
+     ],
+     "correcta": 2,
+     "explicacion": "La diferencia es 2 horas; multiplicarla por la potencia eléctrica constante. Es una comparación hipotética.",
+     "fuentes": "U"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Especialista Agrónomo"
+  },
+  {
+   "codigo": "N3-F04",
+   "titulo": "Cálculo y comparación de la parcela simulada 4",
+   "nivel": 3,
+   "contexto": "Ejercicio 4 simulado: ET0=8 mm/día, Kc=0.8, lluvia efectiva=1.6 mm/día, área=4000 m², eficiencia de aplicación=0.8 y caudal constante=8 m³/h. Usar necesidad=max(0,ETc−lluvia), volumen neto=lámina×área/1000, volumen bruto=neto/eficiencia y horas=bruto/caudal. No considerar otras reservas, entradas o pérdidas. Comparación energética: referencia=5 h, nueva duración calculada y potencia eléctrica constante=7 kW.",
+   "preguntas": [
+    {
+     "enunciado": "Parcela simulada 4: ¿qué lámina neta resulta del balance indicado?",
+     "opciones": [
+      "14.4 mm",
+      "6.4 mm",
+      "8 mm",
+      "4.8 mm"
+     ],
+     "correcta": 3,
+     "explicacion": "Primero ETc=ET0×Kc; después descontar el aporte efectivo del periodo.",
+     "fuentes": "F,L,U"
+    },
+    {
+     "enunciado": "Parcela simulada 4: ¿qué volumen neto corresponde a esa lámina?",
+     "opciones": [
+      "19200 m³",
+      "1.92 m³",
+      "38.4 m³",
+      "19.2 m³"
+     ],
+     "correcta": 3,
+     "explicacion": "1 mm sobre 1 m² equivale a 0.001 m³.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 4: con eficiencia 0.8, ¿qué volumen bruto se requiere?",
+     "opciones": [
+      "19.2 m³",
+      "15.36 m³",
+      "48 m³",
+      "24 m³"
+     ],
+     "correcta": 3,
+     "explicacion": "Dividir el volumen neto por la eficiencia indicada. No asumirla universal.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 4: ¿qué duración corresponde al caudal indicado?",
+     "opciones": [
+      "6 h",
+      "192 h",
+      "3 h",
+      "2.4 h"
+     ],
+     "correcta": 2,
+     "explicacion": "Usar volumen bruto/caudal, conservando las unidades.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 4: frente a la referencia del caso, ¿cuánta energía se evitaría?",
+     "opciones": [
+      "7 kWh",
+      "14 kWh",
+      "15 kWh",
+      "28 kWh"
+     ],
+     "correcta": 1,
+     "explicacion": "La diferencia es 2 horas; multiplicarla por la potencia eléctrica constante. Es una comparación hipotética.",
+     "fuentes": "U"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Especialista Agrónomo"
+  },
+  {
+   "codigo": "N3-F05",
+   "titulo": "Cálculo y comparación de la parcela simulada 5",
+   "nivel": 3,
+   "contexto": "Ejercicio 5 simulado: ET0=9 mm/día, Kc=0.8, lluvia efectiva=2 mm/día, área=5000 m², eficiencia de aplicación=0.8 y caudal constante=10 m³/h. Usar necesidad=max(0,ETc−lluvia), volumen neto=lámina×área/1000, volumen bruto=neto/eficiencia y horas=bruto/caudal. No considerar otras reservas, entradas o pérdidas. Comparación energética: referencia=5.25 h, nueva duración calculada y potencia eléctrica constante=8 kW.",
+   "preguntas": [
+    {
+     "enunciado": "Parcela simulada 5: ¿qué lámina neta resulta del balance indicado?",
+     "opciones": [
+      "7.2 mm",
+      "9.2 mm",
+      "5.2 mm",
+      "15.6 mm"
+     ],
+     "correcta": 2,
+     "explicacion": "Primero ETc=ET0×Kc; después descontar el aporte efectivo del periodo.",
+     "fuentes": "F,L,U"
+    },
+    {
+     "enunciado": "Parcela simulada 5: ¿qué volumen neto corresponde a esa lámina?",
+     "opciones": [
+      "52 m³",
+      "26000 m³",
+      "26 m³",
+      "2.6 m³"
+     ],
+     "correcta": 2,
+     "explicacion": "1 mm sobre 1 m² equivale a 0.001 m³.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 5: con eficiencia 0.8, ¿qué volumen bruto se requiere?",
+     "opciones": [
+      "26 m³",
+      "20.8 m³",
+      "65 m³",
+      "32.5 m³"
+     ],
+     "correcta": 3,
+     "explicacion": "Dividir el volumen neto por la eficiencia indicada. No asumirla universal.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 5: ¿qué duración corresponde al caudal indicado?",
+     "opciones": [
+      "3.25 h",
+      "325 h",
+      "2.6 h",
+      "6.5 h"
+     ],
+     "correcta": 0,
+     "explicacion": "Usar volumen bruto/caudal, conservando las unidades.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 5: frente a la referencia del caso, ¿cuánta energía se evitaría?",
+     "opciones": [
+      "32 kWh",
+      "16 kWh",
+      "17 kWh",
+      "8 kWh"
+     ],
+     "correcta": 1,
+     "explicacion": "La diferencia es 2 horas; multiplicarla por la potencia eléctrica constante. Es una comparación hipotética.",
+     "fuentes": "U"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Especialista Agrónomo"
+  },
+  {
+   "codigo": "N3-F06",
+   "titulo": "Cálculo y comparación de la parcela simulada 6",
+   "nivel": 3,
+   "contexto": "Ejercicio 6 simulado: ET0=10 mm/día, Kc=0.8, lluvia efectiva=2.4 mm/día, área=6000 m², eficiencia de aplicación=0.8 y caudal constante=12 m³/h. Usar necesidad=max(0,ETc−lluvia), volumen neto=lámina×área/1000, volumen bruto=neto/eficiencia y horas=bruto/caudal. No considerar otras reservas, entradas o pérdidas. Comparación energética: referencia=5.5 h, nueva duración calculada y potencia eléctrica constante=9 kW.",
+   "preguntas": [
+    {
+     "enunciado": "Parcela simulada 6: ¿qué lámina neta resulta del balance indicado?",
+     "opciones": [
+      "10.4 mm",
+      "16.8 mm",
+      "8 mm",
+      "5.6 mm"
+     ],
+     "correcta": 3,
+     "explicacion": "Primero ETc=ET0×Kc; después descontar el aporte efectivo del periodo.",
+     "fuentes": "F,L,U"
+    },
+    {
+     "enunciado": "Parcela simulada 6: ¿qué volumen neto corresponde a esa lámina?",
+     "opciones": [
+      "67.2 m³",
+      "33.6 m³",
+      "33600 m³",
+      "3.36 m³"
+     ],
+     "correcta": 1,
+     "explicacion": "1 mm sobre 1 m² equivale a 0.001 m³.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 6: con eficiencia 0.8, ¿qué volumen bruto se requiere?",
+     "opciones": [
+      "84 m³",
+      "33.6 m³",
+      "26.88 m³",
+      "42 m³"
+     ],
+     "correcta": 3,
+     "explicacion": "Dividir el volumen neto por la eficiencia indicada. No asumirla universal.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 6: ¿qué duración corresponde al caudal indicado?",
+     "opciones": [
+      "3.5 h",
+      "504 h",
+      "7 h",
+      "2.8 h"
+     ],
+     "correcta": 0,
+     "explicacion": "Usar volumen bruto/caudal, conservando las unidades.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 6: frente a la referencia del caso, ¿cuánta energía se evitaría?",
+     "opciones": [
+      "36 kWh",
+      "19 kWh",
+      "18 kWh",
+      "9 kWh"
+     ],
+     "correcta": 2,
+     "explicacion": "La diferencia es 2 horas; multiplicarla por la potencia eléctrica constante. Es una comparación hipotética.",
+     "fuentes": "U"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Especialista Agrónomo"
+  },
+  {
+   "codigo": "N3-F07",
+   "titulo": "Cálculo y comparación de la parcela simulada 7",
+   "nivel": 3,
+   "contexto": "Ejercicio 7 simulado: ET0=11 mm/día, Kc=0.8, lluvia efectiva=2.8 mm/día, área=7000 m², eficiencia de aplicación=0.8 y caudal constante=14 m³/h. Usar necesidad=max(0,ETc−lluvia), volumen neto=lámina×área/1000, volumen bruto=neto/eficiencia y horas=bruto/caudal. No considerar otras reservas, entradas o pérdidas. Comparación energética: referencia=5.75 h, nueva duración calculada y potencia eléctrica constante=10 kW.",
+   "preguntas": [
+    {
+     "enunciado": "Parcela simulada 7: ¿qué lámina neta resulta del balance indicado?",
+     "opciones": [
+      "11.6 mm",
+      "8.8 mm",
+      "6 mm",
+      "18 mm"
+     ],
+     "correcta": 2,
+     "explicacion": "Primero ETc=ET0×Kc; después descontar el aporte efectivo del periodo.",
+     "fuentes": "F,L,U"
+    },
+    {
+     "enunciado": "Parcela simulada 7: ¿qué volumen neto corresponde a esa lámina?",
+     "opciones": [
+      "84 m³",
+      "4.2 m³",
+      "42000 m³",
+      "42 m³"
+     ],
+     "correcta": 3,
+     "explicacion": "1 mm sobre 1 m² equivale a 0.001 m³.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 7: con eficiencia 0.8, ¿qué volumen bruto se requiere?",
+     "opciones": [
+      "42 m³",
+      "105 m³",
+      "52.5 m³",
+      "33.6 m³"
+     ],
+     "correcta": 2,
+     "explicacion": "Dividir el volumen neto por la eficiencia indicada. No asumirla universal.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 7: ¿qué duración corresponde al caudal indicado?",
+     "opciones": [
+      "3.75 h",
+      "735 h",
+      "3 h",
+      "7.5 h"
+     ],
+     "correcta": 0,
+     "explicacion": "Usar volumen bruto/caudal, conservando las unidades.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 7: frente a la referencia del caso, ¿cuánta energía se evitaría?",
+     "opciones": [
+      "20 kWh",
+      "21 kWh",
+      "40 kWh",
+      "10 kWh"
+     ],
+     "correcta": 0,
+     "explicacion": "La diferencia es 2 horas; multiplicarla por la potencia eléctrica constante. Es una comparación hipotética.",
+     "fuentes": "U"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Especialista Agrónomo"
+  },
+  {
+   "codigo": "N3-F08",
+   "titulo": "Cálculo y comparación de la parcela simulada 8",
+   "nivel": 3,
+   "contexto": "Ejercicio 8 simulado: ET0=12 mm/día, Kc=0.8, lluvia efectiva=3.2 mm/día, área=8000 m², eficiencia de aplicación=0.8 y caudal constante=16 m³/h. Usar necesidad=max(0,ETc−lluvia), volumen neto=lámina×área/1000, volumen bruto=neto/eficiencia y horas=bruto/caudal. No considerar otras reservas, entradas o pérdidas. Comparación energética: referencia=6 h, nueva duración calculada y potencia eléctrica constante=11 kW.",
+   "preguntas": [
+    {
+     "enunciado": "Parcela simulada 8: ¿qué lámina neta resulta del balance indicado?",
+     "opciones": [
+      "19.2 mm",
+      "9.6 mm",
+      "6.4 mm",
+      "12.8 mm"
+     ],
+     "correcta": 2,
+     "explicacion": "Primero ETc=ET0×Kc; después descontar el aporte efectivo del periodo.",
+     "fuentes": "F,L,U"
+    },
+    {
+     "enunciado": "Parcela simulada 8: ¿qué volumen neto corresponde a esa lámina?",
+     "opciones": [
+      "102.4 m³",
+      "5.12 m³",
+      "51200 m³",
+      "51.2 m³"
+     ],
+     "correcta": 3,
+     "explicacion": "1 mm sobre 1 m² equivale a 0.001 m³.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 8: con eficiencia 0.8, ¿qué volumen bruto se requiere?",
+     "opciones": [
+      "40.96 m³",
+      "128 m³",
+      "51.2 m³",
+      "64 m³"
+     ],
+     "correcta": 3,
+     "explicacion": "Dividir el volumen neto por la eficiencia indicada. No asumirla universal.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 8: ¿qué duración corresponde al caudal indicado?",
+     "opciones": [
+      "1024 h",
+      "4 h",
+      "8 h",
+      "3.2 h"
+     ],
+     "correcta": 1,
+     "explicacion": "Usar volumen bruto/caudal, conservando las unidades.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 8: frente a la referencia del caso, ¿cuánta energía se evitaría?",
+     "opciones": [
+      "11 kWh",
+      "44 kWh",
+      "23 kWh",
+      "22 kWh"
+     ],
+     "correcta": 3,
+     "explicacion": "La diferencia es 2 horas; multiplicarla por la potencia eléctrica constante. Es una comparación hipotética.",
+     "fuentes": "U"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Especialista Agrónomo"
+  },
+  {
+   "codigo": "N3-F09",
+   "titulo": "Cálculo y comparación de la parcela simulada 9",
+   "nivel": 3,
+   "contexto": "Ejercicio 9 simulado: ET0=13 mm/día, Kc=0.8, lluvia efectiva=3.6 mm/día, área=9000 m², eficiencia de aplicación=0.8 y caudal constante=18 m³/h. Usar necesidad=max(0,ETc−lluvia), volumen neto=lámina×área/1000, volumen bruto=neto/eficiencia y horas=bruto/caudal. No considerar otras reservas, entradas o pérdidas. Comparación energética: referencia=6.25 h, nueva duración calculada y potencia eléctrica constante=12 kW.",
+   "preguntas": [
+    {
+     "enunciado": "Parcela simulada 9: ¿qué lámina neta resulta del balance indicado?",
+     "opciones": [
+      "14 mm",
+      "6.8 mm",
+      "10.4 mm",
+      "20.4 mm"
+     ],
+     "correcta": 1,
+     "explicacion": "Primero ETc=ET0×Kc; después descontar el aporte efectivo del periodo.",
+     "fuentes": "F,L,U"
+    },
+    {
+     "enunciado": "Parcela simulada 9: ¿qué volumen neto corresponde a esa lámina?",
+     "opciones": [
+      "61200 m³",
+      "122.4 m³",
+      "61.2 m³",
+      "6.12 m³"
+     ],
+     "correcta": 2,
+     "explicacion": "1 mm sobre 1 m² equivale a 0.001 m³.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 9: con eficiencia 0.8, ¿qué volumen bruto se requiere?",
+     "opciones": [
+      "76.5 m³",
+      "61.2 m³",
+      "48.96 m³",
+      "153 m³"
+     ],
+     "correcta": 0,
+     "explicacion": "Dividir el volumen neto por la eficiencia indicada. No asumirla universal.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 9: ¿qué duración corresponde al caudal indicado?",
+     "opciones": [
+      "3.4 h",
+      "4.25 h",
+      "8.5 h",
+      "1377 h"
+     ],
+     "correcta": 1,
+     "explicacion": "Usar volumen bruto/caudal, conservando las unidades.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 9: frente a la referencia del caso, ¿cuánta energía se evitaría?",
+     "opciones": [
+      "25 kWh",
+      "48 kWh",
+      "12 kWh",
+      "24 kWh"
+     ],
+     "correcta": 3,
+     "explicacion": "La diferencia es 2 horas; multiplicarla por la potencia eléctrica constante. Es una comparación hipotética.",
+     "fuentes": "U"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Especialista Agrónomo"
+  },
+  {
+   "codigo": "N3-F10",
+   "titulo": "Cálculo y comparación de la parcela simulada 10",
+   "nivel": 3,
+   "contexto": "Ejercicio 10 simulado: ET0=14 mm/día, Kc=0.8, lluvia efectiva=4 mm/día, área=10000 m², eficiencia de aplicación=0.8 y caudal constante=20 m³/h. Usar necesidad=max(0,ETc−lluvia), volumen neto=lámina×área/1000, volumen bruto=neto/eficiencia y horas=bruto/caudal. No considerar otras reservas, entradas o pérdidas. Comparación energética: referencia=6.5 h, nueva duración calculada y potencia eléctrica constante=13 kW.",
+   "preguntas": [
+    {
+     "enunciado": "Parcela simulada 10: ¿qué lámina neta resulta del balance indicado?",
+     "opciones": [
+      "15.2 mm",
+      "7.2 mm",
+      "11.2 mm",
+      "21.6 mm"
+     ],
+     "correcta": 1,
+     "explicacion": "Primero ETc=ET0×Kc; después descontar el aporte efectivo del periodo.",
+     "fuentes": "F,L,U"
+    },
+    {
+     "enunciado": "Parcela simulada 10: ¿qué volumen neto corresponde a esa lámina?",
+     "opciones": [
+      "7.2 m³",
+      "72 m³",
+      "72000 m³",
+      "144 m³"
+     ],
+     "correcta": 1,
+     "explicacion": "1 mm sobre 1 m² equivale a 0.001 m³.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 10: con eficiencia 0.8, ¿qué volumen bruto se requiere?",
+     "opciones": [
+      "72 m³",
+      "180 m³",
+      "57.6 m³",
+      "90 m³"
+     ],
+     "correcta": 3,
+     "explicacion": "Dividir el volumen neto por la eficiencia indicada. No asumirla universal.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 10: ¿qué duración corresponde al caudal indicado?",
+     "opciones": [
+      "4.5 h",
+      "1800 h",
+      "3.6 h",
+      "9 h"
+     ],
+     "correcta": 0,
+     "explicacion": "Usar volumen bruto/caudal, conservando las unidades.",
+     "fuentes": "U"
+    },
+    {
+     "enunciado": "Parcela simulada 10: frente a la referencia del caso, ¿cuánta energía se evitaría?",
+     "opciones": [
+      "52 kWh",
+      "27 kWh",
+      "13 kWh",
+      "26 kWh"
+     ],
+     "correcta": 3,
+     "explicacion": "La diferencia es 2 horas; multiplicarla por la potencia eléctrica constante. Es una comparación hipotética.",
+     "fuentes": "U"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Especialista Agrónomo"
+  },
+  {
+   "codigo": "N4-F01",
+   "titulo": "Clima sin actualizar",
+   "nivel": 4,
+   "contexto": "Auditoría didáctica 1: la API devuelve un pronóstico antiguo. El productor está por decidir si sigue la recomendación. No se ofrecen mediciones suficientes para calcular horas reales.",
+   "preguntas": [
+    {
+     "enunciado": "Auditoría 1: ¿qué información permite revisar el problema principal?",
+     "opciones": [
+      "fecha, ubicación y vigencia del pronóstico",
+      "Solo la apariencia del menú",
+      "Solo el puntaje de Comunidad",
+      "Solo el nombre de la cuenta"
+     ],
+     "correcta": 0,
+     "explicacion": "Un dato antiguo puede no describir las condiciones del periodo actual.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 1: ¿cuál es la siguiente acción más fundamentada?",
+     "opciones": [
+      "Conservar el resultado sin advertencias",
+      "verificar y actualizar el clima antes de presentar la propuesta",
+      "Presentar el dato faltante como cero",
+      "Cambiar horas al azar"
+     ],
+     "correcta": 1,
+     "explicacion": "Un dato antiguo puede no describir las condiciones del periodo actual.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 1: ¿qué decisión está justificada con los datos actuales?",
+     "opciones": [
+      "No fijar horas nuevas hasta revisar el problema",
+      "Asignar una cifra universal",
+      "Duplicar horas automáticamente",
+      "Cancelar siempre sin revisar"
+     ],
+     "correcta": 0,
+     "explicacion": "La información insuficiente impide justificar una nueva cantidad.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 1: ¿qué explicación debe acompañar el resultado revisado?",
+     "opciones": [
+      "Solo un número sin contexto",
+      "Solo el rango del autor",
+      "Solo una orden de regar",
+      "Datos usados, supuestos, limitaciones y motivo de la propuesta"
+     ],
+     "correcta": 3,
+     "explicacion": "La capacitación exige explicar cómo se llegó a la propuesta.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 1: ¿qué registro permite seguir la decisión del productor?",
+     "opciones": [
+      "Solo la cantidad de seguidores",
+      "Solo el color de la tarjeta",
+      "Solo el total de likes",
+      "La propuesta revisada, su decisión y el motivo si ajusta o rechaza"
+     ],
+     "correcta": 3,
+     "explicacion": "El historial debe distinguir recomendación y decisión del agricultor.",
+     "fuentes": "M"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Maestro de la Tierra"
+  },
+  {
+   "codigo": "N4-F02",
+   "titulo": "Coeficiente sin contexto",
+   "nivel": 4,
+   "contexto": "Auditoría didáctica 2: el Kc fue copiado sin indicar cultivo ni etapa. El productor está por decidir si sigue la recomendación. No se ofrecen mediciones suficientes para calcular horas reales.",
+   "preguntas": [
+    {
+     "enunciado": "Auditoría 2: ¿qué información permite revisar el problema principal?",
+     "opciones": [
+      "Solo el puntaje de Comunidad",
+      "fuente, cultivo y etapa del Kc",
+      "Solo la apariencia del menú",
+      "Solo el nombre de la cuenta"
+     ],
+     "correcta": 1,
+     "explicacion": "Un coeficiente aislado no es transferible sin revisar su contexto.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 2: ¿cuál es la siguiente acción más fundamentada?",
+     "opciones": [
+      "buscar un coeficiente documentado compatible con el contexto",
+      "Cambiar horas al azar",
+      "Conservar el resultado sin advertencias",
+      "Presentar el dato faltante como cero"
+     ],
+     "correcta": 0,
+     "explicacion": "Un coeficiente aislado no es transferible sin revisar su contexto.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 2: ¿qué decisión está justificada con los datos actuales?",
+     "opciones": [
+      "Duplicar horas automáticamente",
+      "No fijar horas nuevas hasta revisar el problema",
+      "Cancelar siempre sin revisar",
+      "Asignar una cifra universal"
+     ],
+     "correcta": 1,
+     "explicacion": "La información insuficiente impide justificar una nueva cantidad.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 2: ¿qué explicación debe acompañar el resultado revisado?",
+     "opciones": [
+      "Solo una orden de regar",
+      "Datos usados, supuestos, limitaciones y motivo de la propuesta",
+      "Solo un número sin contexto",
+      "Solo el rango del autor"
+     ],
+     "correcta": 1,
+     "explicacion": "La capacitación exige explicar cómo se llegó a la propuesta.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 2: ¿qué registro permite seguir la decisión del productor?",
+     "opciones": [
+      "Solo el color de la tarjeta",
+      "Solo el total de likes",
+      "La propuesta revisada, su decisión y el motivo si ajusta o rechaza",
+      "Solo la cantidad de seguidores"
+     ],
+     "correcta": 2,
+     "explicacion": "El historial debe distinguir recomendación y decisión del agricultor.",
+     "fuentes": "M"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Maestro de la Tierra"
+  },
+  {
+   "codigo": "N4-F03",
+   "titulo": "Caudal de un solo emisor",
+   "nivel": 4,
+   "contexto": "Auditoría didáctica 3: se usa el caudal de un gotero como si fuera el total. El productor está por decidir si sigue la recomendación. No se ofrecen mediciones suficientes para calcular horas reales.",
+   "preguntas": [
+    {
+     "enunciado": "Auditoría 3: ¿qué información permite revisar el problema principal?",
+     "opciones": [
+      "alcance del caudal, unidades y emisores que operan simultáneamente",
+      "Solo la apariencia del menú",
+      "Solo el puntaje de Comunidad",
+      "Solo el nombre de la cuenta"
+     ],
+     "correcta": 0,
+     "explicacion": "Confundir un emisor con todo el sistema cambia la conversión a horas.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 3: ¿cuál es la siguiente acción más fundamentada?",
+     "opciones": [
+      "Presentar el dato faltante como cero",
+      "Cambiar horas al azar",
+      "Conservar el resultado sin advertencias",
+      "verificar el caudal del conjunto que realmente opera"
+     ],
+     "correcta": 3,
+     "explicacion": "Confundir un emisor con todo el sistema cambia la conversión a horas.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 3: ¿qué decisión está justificada con los datos actuales?",
+     "opciones": [
+      "Duplicar horas automáticamente",
+      "No fijar horas nuevas hasta revisar el problema",
+      "Cancelar siempre sin revisar",
+      "Asignar una cifra universal"
+     ],
+     "correcta": 1,
+     "explicacion": "La información insuficiente impide justificar una nueva cantidad.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 3: ¿qué explicación debe acompañar el resultado revisado?",
+     "opciones": [
+      "Solo una orden de regar",
+      "Solo un número sin contexto",
+      "Datos usados, supuestos, limitaciones y motivo de la propuesta",
+      "Solo el rango del autor"
+     ],
+     "correcta": 2,
+     "explicacion": "La capacitación exige explicar cómo se llegó a la propuesta.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 3: ¿qué registro permite seguir la decisión del productor?",
+     "opciones": [
+      "Solo la cantidad de seguidores",
+      "Solo el color de la tarjeta",
+      "Solo el total de likes",
+      "La propuesta revisada, su decisión y el motivo si ajusta o rechaza"
+     ],
+     "correcta": 3,
+     "explicacion": "El historial debe distinguir recomendación y decisión del agricultor.",
+     "fuentes": "M"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Maestro de la Tierra"
+  },
+  {
+   "codigo": "N4-F04",
+   "titulo": "Lluvia y escurrimiento",
+   "nivel": 4,
+   "contexto": "Auditoría didáctica 4: se descuenta toda la lluvia aunque parte escurre. El productor está por decidir si sigue la recomendación. No se ofrecen mediciones suficientes para calcular horas reales.",
+   "preguntas": [
+    {
+     "enunciado": "Auditoría 4: ¿qué información permite revisar el problema principal?",
+     "opciones": [
+      "Solo el nombre de la cuenta",
+      "Solo la apariencia del menú",
+      "aporte efectivo de lluvia y condiciones de aprovechamiento",
+      "Solo el puntaje de Comunidad"
+     ],
+     "correcta": 2,
+     "explicacion": "Lluvia total y aporte efectivo no son necesariamente iguales.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 4: ¿cuál es la siguiente acción más fundamentada?",
+     "opciones": [
+      "Presentar el dato faltante como cero",
+      "revisar el aporte útil antes de descontarlo",
+      "Conservar el resultado sin advertencias",
+      "Cambiar horas al azar"
+     ],
+     "correcta": 1,
+     "explicacion": "Lluvia total y aporte efectivo no son necesariamente iguales.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 4: ¿qué decisión está justificada con los datos actuales?",
+     "opciones": [
+      "Cancelar siempre sin revisar",
+      "Asignar una cifra universal",
+      "Duplicar horas automáticamente",
+      "No fijar horas nuevas hasta revisar el problema"
+     ],
+     "correcta": 3,
+     "explicacion": "La información insuficiente impide justificar una nueva cantidad.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 4: ¿qué explicación debe acompañar el resultado revisado?",
+     "opciones": [
+      "Solo una orden de regar",
+      "Solo el rango del autor",
+      "Solo un número sin contexto",
+      "Datos usados, supuestos, limitaciones y motivo de la propuesta"
+     ],
+     "correcta": 3,
+     "explicacion": "La capacitación exige explicar cómo se llegó a la propuesta.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 4: ¿qué registro permite seguir la decisión del productor?",
+     "opciones": [
+      "La propuesta revisada, su decisión y el motivo si ajusta o rechaza",
+      "Solo el total de likes",
+      "Solo el color de la tarjeta",
+      "Solo la cantidad de seguidores"
+     ],
+     "correcta": 0,
+     "explicacion": "El historial debe distinguir recomendación y decisión del agricultor.",
+     "fuentes": "M"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Maestro de la Tierra"
+  },
+  {
+   "codigo": "N4-F05",
+   "titulo": "Unidades mezcladas",
+   "nivel": 4,
+   "contexto": "Auditoría didáctica 5: la lámina es diaria y la lluvia corresponde a una semana. El productor está por decidir si sigue la recomendación. No se ofrecen mediciones suficientes para calcular horas reales.",
+   "preguntas": [
+    {
+     "enunciado": "Auditoría 5: ¿qué información permite revisar el problema principal?",
+     "opciones": [
+      "periodo y unidades de todos los términos del balance",
+      "Solo el nombre de la cuenta",
+      "Solo el puntaje de Comunidad",
+      "Solo la apariencia del menú"
+     ],
+     "correcta": 0,
+     "explicacion": "Sumar o restar periodos distintos produce un balance incoherente.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 5: ¿cuál es la siguiente acción más fundamentada?",
+     "opciones": [
+      "Conservar el resultado sin advertencias",
+      "Presentar el dato faltante como cero",
+      "Cambiar horas al azar",
+      "llevar los datos al mismo periodo antes de calcular"
+     ],
+     "correcta": 3,
+     "explicacion": "Sumar o restar periodos distintos produce un balance incoherente.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 5: ¿qué decisión está justificada con los datos actuales?",
+     "opciones": [
+      "No fijar horas nuevas hasta revisar el problema",
+      "Duplicar horas automáticamente",
+      "Asignar una cifra universal",
+      "Cancelar siempre sin revisar"
+     ],
+     "correcta": 0,
+     "explicacion": "La información insuficiente impide justificar una nueva cantidad.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 5: ¿qué explicación debe acompañar el resultado revisado?",
+     "opciones": [
+      "Solo una orden de regar",
+      "Solo un número sin contexto",
+      "Datos usados, supuestos, limitaciones y motivo de la propuesta",
+      "Solo el rango del autor"
+     ],
+     "correcta": 2,
+     "explicacion": "La capacitación exige explicar cómo se llegó a la propuesta.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 5: ¿qué registro permite seguir la decisión del productor?",
+     "opciones": [
+      "La propuesta revisada, su decisión y el motivo si ajusta o rechaza",
+      "Solo el color de la tarjeta",
+      "Solo el total de likes",
+      "Solo la cantidad de seguidores"
+     ],
+     "correcta": 0,
+     "explicacion": "El historial debe distinguir recomendación y decisión del agricultor.",
+     "fuentes": "M"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Maestro de la Tierra"
+  },
+  {
+   "codigo": "N4-F06",
+   "titulo": "Ahorro sin referencia",
+   "nivel": 4,
+   "contexto": "Auditoría didáctica 6: se anuncia ahorro sin describir el consumo comparado. El productor está por decidir si sigue la recomendación. No se ofrecen mediciones suficientes para calcular horas reales.",
+   "preguntas": [
+    {
+     "enunciado": "Auditoría 6: ¿qué información permite revisar el problema principal?",
+     "opciones": [
+      "Solo el nombre de la cuenta",
+      "Solo la apariencia del menú",
+      "referencia de consumo y condiciones de comparación",
+      "Solo el puntaje de Comunidad"
+     ],
+     "correcta": 2,
+     "explicacion": "Un ahorro requiere una comparación explícita.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 6: ¿cuál es la siguiente acción más fundamentada?",
+     "opciones": [
+      "Cambiar horas al azar",
+      "Conservar el resultado sin advertencias",
+      "definir una referencia verificable y comparable",
+      "Presentar el dato faltante como cero"
+     ],
+     "correcta": 2,
+     "explicacion": "Un ahorro requiere una comparación explícita.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 6: ¿qué decisión está justificada con los datos actuales?",
+     "opciones": [
+      "Cancelar siempre sin revisar",
+      "Asignar una cifra universal",
+      "No fijar horas nuevas hasta revisar el problema",
+      "Duplicar horas automáticamente"
+     ],
+     "correcta": 2,
+     "explicacion": "La información insuficiente impide justificar una nueva cantidad.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 6: ¿qué explicación debe acompañar el resultado revisado?",
+     "opciones": [
+      "Datos usados, supuestos, limitaciones y motivo de la propuesta",
+      "Solo un número sin contexto",
+      "Solo una orden de regar",
+      "Solo el rango del autor"
+     ],
+     "correcta": 0,
+     "explicacion": "La capacitación exige explicar cómo se llegó a la propuesta.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 6: ¿qué registro permite seguir la decisión del productor?",
+     "opciones": [
+      "Solo la cantidad de seguidores",
+      "La propuesta revisada, su decisión y el motivo si ajusta o rechaza",
+      "Solo el color de la tarjeta",
+      "Solo el total de likes"
+     ],
+     "correcta": 1,
+     "explicacion": "El historial debe distinguir recomendación y decisión del agricultor.",
+     "fuentes": "M"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Maestro de la Tierra"
+  },
+  {
+   "codigo": "N4-F07",
+   "titulo": "Respuesta del foro",
+   "nivel": 4,
+   "contexto": "Auditoría didáctica 7: se presenta una experiencia reconocida como receta universal. El productor está por decidir si sigue la recomendación. No se ofrecen mediciones suficientes para calcular horas reales.",
+   "preguntas": [
+    {
+     "enunciado": "Auditoría 7: ¿qué información permite revisar el problema principal?",
+     "opciones": [
+      "Solo la apariencia del menú",
+      "Solo el puntaje de Comunidad",
+      "cultivo, zona, condiciones y revisión técnica de la respuesta",
+      "Solo el nombre de la cuenta"
+     ],
+     "correcta": 2,
+     "explicacion": "El reconocimiento del autor no prueba validez universal.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 7: ¿cuál es la siguiente acción más fundamentada?",
+     "opciones": [
+      "Presentar el dato faltante como cero",
+      "usar la experiencia como caso contextualizado sujeto a revisión",
+      "Conservar el resultado sin advertencias",
+      "Cambiar horas al azar"
+     ],
+     "correcta": 1,
+     "explicacion": "El reconocimiento del autor no prueba validez universal.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 7: ¿qué decisión está justificada con los datos actuales?",
+     "opciones": [
+      "No fijar horas nuevas hasta revisar el problema",
+      "Asignar una cifra universal",
+      "Cancelar siempre sin revisar",
+      "Duplicar horas automáticamente"
+     ],
+     "correcta": 0,
+     "explicacion": "La información insuficiente impide justificar una nueva cantidad.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 7: ¿qué explicación debe acompañar el resultado revisado?",
+     "opciones": [
+      "Solo un número sin contexto",
+      "Solo una orden de regar",
+      "Solo el rango del autor",
+      "Datos usados, supuestos, limitaciones y motivo de la propuesta"
+     ],
+     "correcta": 3,
+     "explicacion": "La capacitación exige explicar cómo se llegó a la propuesta.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 7: ¿qué registro permite seguir la decisión del productor?",
+     "opciones": [
+      "Solo el total de likes",
+      "Solo la cantidad de seguidores",
+      "Solo el color de la tarjeta",
+      "La propuesta revisada, su decisión y el motivo si ajusta o rechaza"
+     ],
+     "correcta": 3,
+     "explicacion": "El historial debe distinguir recomendación y decisión del agricultor.",
+     "fuentes": "M"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Maestro de la Tierra"
+  },
+  {
+   "codigo": "N4-F08",
+   "titulo": "Tarifa no verificada",
+   "nivel": 4,
+   "contexto": "Auditoría didáctica 8: se muestran pesos con una tarifa sin fuente ni fecha. El productor está por decidir si sigue la recomendación. No se ofrecen mediciones suficientes para calcular horas reales.",
+   "preguntas": [
+    {
+     "enunciado": "Auditoría 8: ¿qué información permite revisar el problema principal?",
+     "opciones": [
+      "Solo la apariencia del menú",
+      "tarifa aplicable, vigencia y base del cálculo",
+      "Solo el puntaje de Comunidad",
+      "Solo el nombre de la cuenta"
+     ],
+     "correcta": 1,
+     "explicacion": "Una conversión monetaria depende de datos tarifarios aplicables.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 8: ¿cuál es la siguiente acción más fundamentada?",
+     "opciones": [
+      "verificar la tarifa antes de mostrar el impacto monetario",
+      "Cambiar horas al azar",
+      "Presentar el dato faltante como cero",
+      "Conservar el resultado sin advertencias"
+     ],
+     "correcta": 0,
+     "explicacion": "Una conversión monetaria depende de datos tarifarios aplicables.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 8: ¿qué decisión está justificada con los datos actuales?",
+     "opciones": [
+      "No fijar horas nuevas hasta revisar el problema",
+      "Duplicar horas automáticamente",
+      "Cancelar siempre sin revisar",
+      "Asignar una cifra universal"
+     ],
+     "correcta": 0,
+     "explicacion": "La información insuficiente impide justificar una nueva cantidad.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 8: ¿qué explicación debe acompañar el resultado revisado?",
+     "opciones": [
+      "Solo el rango del autor",
+      "Solo un número sin contexto",
+      "Solo una orden de regar",
+      "Datos usados, supuestos, limitaciones y motivo de la propuesta"
+     ],
+     "correcta": 3,
+     "explicacion": "La capacitación exige explicar cómo se llegó a la propuesta.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 8: ¿qué registro permite seguir la decisión del productor?",
+     "opciones": [
+      "Solo la cantidad de seguidores",
+      "Solo el total de likes",
+      "Solo el color de la tarjeta",
+      "La propuesta revisada, su decisión y el motivo si ajusta o rechaza"
+     ],
+     "correcta": 3,
+     "explicacion": "El historial debe distinguir recomendación y decisión del agricultor.",
+     "fuentes": "M"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Maestro de la Tierra"
+  },
+  {
+   "codigo": "N4-F09",
+   "titulo": "Potencia confundida",
+   "nivel": 4,
+   "contexto": "Auditoría didáctica 9: se informa un valor en kW como si fuera energía ahorrada. El productor está por decidir si sigue la recomendación. No se ofrecen mediciones suficientes para calcular horas reales.",
+   "preguntas": [
+    {
+     "enunciado": "Auditoría 9: ¿qué información permite revisar el problema principal?",
+     "opciones": [
+      "Solo la apariencia del menú",
+      "Solo el puntaje de Comunidad",
+      "potencia eléctrica, tiempo y unidad de energía",
+      "Solo el nombre de la cuenta"
+     ],
+     "correcta": 2,
+     "explicacion": "Potencia y energía no son magnitudes intercambiables.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 9: ¿cuál es la siguiente acción más fundamentada?",
+     "opciones": [
+      "calcular kWh con potencia y tiempo y explicar los supuestos",
+      "Presentar el dato faltante como cero",
+      "Cambiar horas al azar",
+      "Conservar el resultado sin advertencias"
+     ],
+     "correcta": 0,
+     "explicacion": "Potencia y energía no son magnitudes intercambiables.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 9: ¿qué decisión está justificada con los datos actuales?",
+     "opciones": [
+      "Asignar una cifra universal",
+      "No fijar horas nuevas hasta revisar el problema",
+      "Cancelar siempre sin revisar",
+      "Duplicar horas automáticamente"
+     ],
+     "correcta": 1,
+     "explicacion": "La información insuficiente impide justificar una nueva cantidad.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 9: ¿qué explicación debe acompañar el resultado revisado?",
+     "opciones": [
+      "Solo una orden de regar",
+      "Solo el rango del autor",
+      "Solo un número sin contexto",
+      "Datos usados, supuestos, limitaciones y motivo de la propuesta"
+     ],
+     "correcta": 3,
+     "explicacion": "La capacitación exige explicar cómo se llegó a la propuesta.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 9: ¿qué registro permite seguir la decisión del productor?",
+     "opciones": [
+      "Solo el total de likes",
+      "La propuesta revisada, su decisión y el motivo si ajusta o rechaza",
+      "Solo la cantidad de seguidores",
+      "Solo el color de la tarjeta"
+     ],
+     "correcta": 1,
+     "explicacion": "El historial debe distinguir recomendación y decisión del agricultor.",
+     "fuentes": "M"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Maestro de la Tierra"
+  },
+  {
+   "codigo": "N4-F10",
+   "titulo": "Cambio en la parcela",
+   "nivel": 4,
+   "contexto": "Auditoría didáctica 10: la recomendación usa una etapa y sistema anteriores al cambio. El productor está por decidir si sigue la recomendación. No se ofrecen mediciones suficientes para calcular horas reales.",
+   "preguntas": [
+    {
+     "enunciado": "Auditoría 10: ¿qué información permite revisar el problema principal?",
+     "opciones": [
+      "Solo la apariencia del menú",
+      "datos actuales del cultivo y del sistema, con fecha",
+      "Solo el puntaje de Comunidad",
+      "Solo el nombre de la cuenta"
+     ],
+     "correcta": 1,
+     "explicacion": "Una recomendación debe corresponder a las condiciones actuales.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 10: ¿cuál es la siguiente acción más fundamentada?",
+     "opciones": [
+      "actualizar el contexto antes de recalcular la propuesta",
+      "Conservar el resultado sin advertencias",
+      "Cambiar horas al azar",
+      "Presentar el dato faltante como cero"
+     ],
+     "correcta": 0,
+     "explicacion": "Una recomendación debe corresponder a las condiciones actuales.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 10: ¿qué decisión está justificada con los datos actuales?",
+     "opciones": [
+      "Asignar una cifra universal",
+      "Cancelar siempre sin revisar",
+      "Duplicar horas automáticamente",
+      "No fijar horas nuevas hasta revisar el problema"
+     ],
+     "correcta": 3,
+     "explicacion": "La información insuficiente impide justificar una nueva cantidad.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 10: ¿qué explicación debe acompañar el resultado revisado?",
+     "opciones": [
+      "Datos usados, supuestos, limitaciones y motivo de la propuesta",
+      "Solo un número sin contexto",
+      "Solo una orden de regar",
+      "Solo el rango del autor"
+     ],
+     "correcta": 0,
+     "explicacion": "La capacitación exige explicar cómo se llegó a la propuesta.",
+     "fuentes": "M"
+    },
+    {
+     "enunciado": "Auditoría 10: ¿qué registro permite seguir la decisión del productor?",
+     "opciones": [
+      "La propuesta revisada, su decisión y el motivo si ajusta o rechaza",
+      "Solo la cantidad de seguidores",
+      "Solo el total de likes",
+      "Solo el color de la tarjeta"
+     ],
+     "correcta": 0,
+     "explicacion": "El historial debe distinguir recomendación y decisión del agricultor.",
+     "fuentes": "M"
+    }
+   ],
+   "estado": "pendiente",
+   "rango": "Maestro de la Tierra"
+  }
+ ]
+}

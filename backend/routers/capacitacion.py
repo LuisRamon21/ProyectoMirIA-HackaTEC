@@ -29,7 +29,7 @@ router = APIRouter(prefix="/api/capacitacion", tags=["Capacitacion"])
 
 BONO_RACHA = 5
 RACHA_PARA_BONO = 3
-TIPOS = {"palabra": "Conoce una palabra", "verdadero_falso": "Verdadero o falso"}
+TIPOS = {"palabra": "Conoce una palabra", "verdadero_falso": "Verdadero o falso", "formulario": "Formulario"}
 
 
 # ---------------------------------------------------------------------------
@@ -55,9 +55,11 @@ def _ya_hizo(conexion, id_usuario: int, id_quiz: int) -> bool:
 
 
 def _quiz(conexion, id_quiz: int, tema: str):
+    """Dinamica activa y aprobada (los formularios en revision no se muestran)."""
     fila = conexion.execute(
-        text("SELECT id_quiz, titulo, tema, descripcion, ejemplo, puntos_por_acierto FROM quizzes "
-             "WHERE id_quiz = :q AND tema = :tema AND activo = 1"),
+        text("SELECT id_quiz, titulo, tema, descripcion, ejemplo, puntos_por_acierto, codigo, contexto, "
+             "id_rango_minimo FROM quizzes "
+             "WHERE id_quiz = :q AND tema = :tema AND activo = 1 AND estado = 'aprobada'"),
         {"q": id_quiz, "tema": tema},
     ).mappings().first()
     if not fila:
@@ -237,12 +239,17 @@ class Entrega(BaseModel):
 
 @router.post("/cuestionarios/{id_quiz}/terminar")
 def terminar_cuestionario(id_quiz: int, datos: Entrega, authorization: str | None = Header(None)):
-    """Recibe la respuesta del PRIMER intento de cada afirmacion y calcula los puntos.
-    Los puntos se calculan aqui (no en la app) con la respuesta correcta guardada en la base."""
+    return _calificar(id_quiz, "verdadero_falso", datos, authorization)
+
+
+def _calificar(id_quiz: int, tema: str, datos: Entrega, authorization: str | None, por_nivel: bool = False):
+    """Recibe la respuesta del PRIMER intento de cada pregunta y calcula los puntos.
+    Los puntos se calculan aqui (no en la app) con la respuesta correcta guardada en la base.
+    por_nivel=True (formularios): solo dan puntos los del rango actual del usuario."""
     yo = usuario_actual(authorization)
     primeras = {r.id_pregunta: r.id_opcion for r in datos.respuestas}
     with engine.begin() as conexion:
-        quiz = _quiz(conexion, id_quiz, "verdadero_falso")
+        quiz = _quiz(conexion, id_quiz, tema)
         correctas = conexion.execute(
             text("SELECT p.id_pregunta, o.id_opcion FROM preguntas p "
                  "JOIN opciones o ON o.id_pregunta = p.id_pregunta AND o.es_correcta = 1 "
@@ -268,7 +275,7 @@ def terminar_cuestionario(id_quiz: int, datos: Entrega, authorization: str | Non
         puntos_aciertos = aciertos * (quiz["puntos_por_acierto"] or 5)
         resumen = {"aciertos": aciertos, "total": len(correctas)}
 
-        motivo = _sin_puntos(conexion, yo["id_usuario"], id_quiz)
+        motivo = (_motivo_nivel(quiz, yo) if por_nivel else None) or _sin_puntos(conexion, yo["id_usuario"], id_quiz)
         if motivo:  # practica: no se guarda nada
             return {**resumen, "puntos_aciertos": 0, "bono_racha": 0, "puntos_ganados": 0,
                     "con_puntos": False, "mensaje": motivo, "subio_de_rango": False, "rango_nuevo": None}
@@ -290,3 +297,82 @@ def terminar_cuestionario(id_quiz: int, datos: Entrega, authorization: str | Non
                f"Ganaste +{total_puntos} puntos.")
     return {**resumen, "puntos_aciertos": puntos_aciertos, "bono_racha": bono, "puntos_ganados": total_puntos,
             "con_puntos": True, "mensaje": mensaje, **resultado}                     
+
+# ---------------------------------------------------------------------------
+# Formularios (documento "Formularios para B.A.W.I"): 10 por rango, 5 preguntas y 4 opciones.
+# - Solo se muestran los formularios aprobados (python -m backend.seed_formularios --aprobar).
+# - Dan puntos solo los de tu rango actual; los de rangos anteriores son practica; los de
+#   rangos mas altos estan bloqueados. Cuentan como la dinamica del dia (maximo 30 puntos).
+# ---------------------------------------------------------------------------
+def _nivel_usuario(conexion, id_usuario: int) -> int:
+    fila = buscar_usuario(conexion, id_usuario=id_usuario) if id_usuario else None
+    return usuario_publico(fila)["rango"]["id_rango"] if fila else 1
+
+
+def _motivo_nivel(quiz, yo: dict) -> str | None:
+    nivel = yo["rango"]["id_rango"]
+    if quiz["id_rango_minimo"] > nivel:
+        raise HTTPException(status_code=403, detail="Este formulario se desbloquea al subir de rango.")
+    if quiz["id_rango_minimo"] < nivel:
+        return "Este formulario es de un rango anterior: cuenta como práctica, sin puntos."
+    return None
+
+
+@router.get("/formularios")
+def listar_formularios(authorization: str | None = Header(None)):
+    id_usuario = id_visitante(authorization)
+    with engine.connect() as conexion:
+        nivel = _nivel_usuario(conexion, id_usuario)
+        hoy = _dinamica_de_hoy(conexion, id_usuario) if id_usuario else None
+        filas = conexion.execute(
+            text("SELECT q.id_quiz, q.codigo, q.titulo, q.id_rango_minimo AS nivel, "
+                 "(SELECT COUNT(*) FROM intentos_quiz i WHERE i.id_quiz = q.id_quiz AND i.id_usuario = :u) AS hechos "
+                 "FROM quizzes q WHERE q.tema = 'formulario' AND q.activo = 1 AND q.estado = 'aprobada' "
+                 "ORDER BY q.codigo"),
+            {"u": id_usuario},
+        ).mappings().all()
+        en_revision = conexion.execute(
+            text("SELECT COUNT(*) FROM quizzes WHERE tema = 'formulario' AND estado <> 'aprobada'")
+        ).scalar()
+    return {
+        "nivel_usuario": nivel,
+        "con_sesion": bool(id_usuario),
+        "en_revision": en_revision,
+        "formularios": [{
+            "id_quiz": f["id_quiz"], "codigo": f["codigo"], "titulo": f["titulo"], "nivel": f["nivel"],
+            "completado": f["hechos"] > 0, "bloqueado": f["nivel"] > nivel,
+            "con_puntos": bool(id_usuario) and not hoy and not f["hechos"] and f["nivel"] == nivel,
+        } for f in filas],
+    }
+
+
+@router.get("/formularios/{id_quiz}")
+def ver_formulario(id_quiz: int, authorization: str | None = Header(None)):
+    """Caso (si lo tiene), preguntas y opciones, sin decir cual es la correcta."""
+    with engine.connect() as conexion:
+        quiz = _quiz(conexion, id_quiz, "formulario")
+        if quiz["id_rango_minimo"] > _nivel_usuario(conexion, id_visitante(authorization)):
+            raise HTTPException(status_code=403, detail="Este formulario se desbloquea al subir de rango.")
+        preguntas = conexion.execute(
+            text("SELECT id_pregunta, enunciado, fuentes FROM preguntas WHERE id_quiz = :q ORDER BY orden"),
+            {"q": id_quiz},
+        ).mappings().all()
+        opciones = conexion.execute(
+            text("SELECT o.id_opcion, o.id_pregunta, o.texto FROM opciones o "
+                 "JOIN preguntas p ON p.id_pregunta = o.id_pregunta WHERE p.id_quiz = :q ORDER BY o.id_opcion"),
+            {"q": id_quiz},
+        ).mappings().all()
+    return {
+        "id_quiz": quiz["id_quiz"], "codigo": quiz["codigo"], "titulo": quiz["titulo"],
+        "nivel": quiz["id_rango_minimo"], "contexto": quiz["contexto"],
+        "puntos_por_acierto": quiz["puntos_por_acierto"], "bono_racha": BONO_RACHA,
+        "preguntas": [{"id_pregunta": p["id_pregunta"], "enunciado": p["enunciado"], "fuentes": p["fuentes"],
+                       "opciones": [{"id_opcion": o["id_opcion"], "texto": o["texto"]}
+                                    for o in opciones if o["id_pregunta"] == p["id_pregunta"]]}
+                      for p in preguntas],
+    }
+
+
+@router.post("/formularios/{id_quiz}/terminar")
+def terminar_formulario(id_quiz: int, datos: Entrega, authorization: str | None = Header(None)):
+    return _calificar(id_quiz, "formulario", datos, authorization, por_nivel=True)
