@@ -10,3 +10,5 @@ scikit-fuzzy
 scipy
 networkx
 pyodbc
+
+python-multipart
