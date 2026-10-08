@@ -1,8 +1,8 @@
 """
-B.A.W.I. Riego - app para el agricultor (Streamlit). Servicio de pago con cuenta.
+B.A.W.I. Riego - app para el agricultor (Streamlit).
 
 - Iniciar sesion (misma cuenta que Comunidad) o crear cuenta con codigo al correo
-- Solo las cuentas con la suscripcion de Riego activa pueden usarla
+- Boton para abrir Comunidad con la misma sesion
 - El productor registra sus parcelas (cultivo, etapa, sistema de riego, bomba...) y las edita
 - Recomendacion del dia con el clima real de la parcela (Open-Meteo), FAO-56 (ET0, Kc, ETc),
   riesgo de estres y cuanto reponer segun la lluvia (motores difusos)
@@ -21,6 +21,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 API_URL = os.getenv("API_URL", "http://localhost:8000")
+COMUNIDAD_URL = os.getenv("COMUNIDAD_URL", "http://localhost:8503").rstrip("/")
 
 # Nombre que se muestra -> clave del municipio en el backend (backend/services/clima.py)
 CIUDADES = {
@@ -184,21 +185,6 @@ def pantalla_codigo() -> None:
         st.rerun()
 
 
-def pantalla_sin_suscripcion(usuario: dict) -> None:
-    _, centro, _ = st.columns([1, 2, 1])
-    with centro:
-        st.title("💧 B.A.W.Í. Riego")
-        st.subheader(f"Hola, {usuario['nombre']}")
-        st.info("Tu cuenta todavía no tiene **B.A.W.Í. Riego** activo. Es un servicio de pago: cuando se active "
-                "tu suscripción podrás registrar tus parcelas y recibir tu recomendación de riego diaria.")
-        st.caption(f"Cuenta: {usuario['correo'] or usuario['usuario']}")
-        if st.button("Ya pagué, volver a revisar", type="primary", width="stretch"):
-            st.rerun()
-        if st.button("Cerrar sesión", width="stretch"):
-            cerrar_sesion()
-            st.rerun()
-
-
 # --------------------------------------------------------------------------
 # Parcelas
 # --------------------------------------------------------------------------
@@ -275,11 +261,18 @@ for clave, valor in {"token": None, "usuario": None, "parcelas": None, "id_parce
                      "registro": None, "cultivos": None}.items():
     st.session_state.setdefault(clave, valor)
 
+# Sesion compartida: si se llega desde Comunidad, la sesion viene en el enlace (?sesion=...)
+token_enlace = st.query_params.get("sesion")
+if token_enlace:
+    st.query_params.clear()  # no dejar el token en la barra de direcciones
+    if not st.session_state.token:
+        st.session_state.token = token_enlace  # se valida abajo con /yo
+
 if not st.session_state.token:
     pantalla_acceso()
     st.stop()
 
-# Datos de la cuenta al dia (por si se activo o vencio la suscripcion)
+# Datos de la cuenta al dia (tambien confirma que la sesion sigue siendo valida)
 ok, datos_yo = llamar_api("GET", "/api/comunidad/yo")
 if ok:
     st.session_state.usuario = datos_yo
@@ -289,9 +282,6 @@ else:
     st.error(datos_yo)
     st.stop()
 usuario = st.session_state.usuario
-if not usuario["usa_riego"]:
-    pantalla_sin_suscripcion(usuario)
-    st.stop()
 
 if not st.session_state.cultivos:
     ok, datos = llamar_api("GET", "/api/riego/cultivos")
@@ -308,6 +298,8 @@ if parcelas is None:
     st.stop()
 
 with st.sidebar:
+    st.link_button("🌱 Ir a B.A.W.Í. Comunidad", f"{COMUNIDAD_URL}/?sesion={st.session_state.token}",
+                   width="stretch", help="Abre Comunidad con tu misma sesión.")
     st.success(f"👨‍🌾 **{usuario['nombre']}**  \n{usuario['correo'] or usuario['usuario']}")
     if st.button("Cerrar sesión", width="stretch"):
         cerrar_sesion()

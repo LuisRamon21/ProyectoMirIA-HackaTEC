@@ -1,12 +1,9 @@
 """
-Rutas de B.A.W.I. Riego (servicio de pago).
+Rutas de B.A.W.I. Riego.
 
 Se entra con la misma cuenta de Comunidad (POST /api/comunidad/login) y la app manda
-la cabecera  Authorization: Bearer <token>. Solo las cuentas con la suscripcion de
-Riego activa (usuarios.suscripcion_riego = 1) pueden usar estas rutas, y cada
-productor solo ve y cambia sus propias parcelas, recomendaciones e historial.
-
-La suscripcion se activa con:  python -m backend.suscripcion_riego --activar <correo>
+la cabecera  Authorization: Bearer <token>. Cada productor solo ve y cambia sus
+propias parcelas, recomendaciones e historial.
 """
 from fastapi import APIRouter, Header, HTTPException
 from pydantic import BaseModel, Field, model_validator
@@ -19,15 +16,6 @@ from backend.services.clima import MUNICIPIOS, ClimaNoDisponible, normalizar_mun
 from backend.services.orquestador import generar_diagnostico_riego
 
 router = APIRouter(prefix="/api/riego", tags=["Riego"])
-
-
-def productor_riego(authorization: str | None) -> dict:
-    """Usuario con sesion y con la suscripcion de Riego activa. Lanza 401/403 si no."""
-    yo = usuario_actual(authorization)
-    if not yo["usa_riego"]:
-        raise HTTPException(status_code=403, detail="Tu cuenta no tiene B.A.W.Í. Riego activo. "
-                                                    "Contrata el servicio para registrar tus parcelas.")
-    return yo
 
 
 def _mi_parcela(conexion, id_parcela: int, yo: dict) -> dict:
@@ -83,14 +71,14 @@ class DatosParcela(BaseModel):
 
 @router.get("/parcelas")
 def mis_parcelas(authorization: str | None = Header(None)):
-    yo = productor_riego(authorization)
+    yo = usuario_actual(authorization)
     with engine.connect() as conexion:
         return registro_riego.parcelas_de_usuario(conexion, yo["id_usuario"])
 
 
 @router.post("/parcelas")
 def registrar_parcela(datos: DatosParcela, authorization: str | None = Header(None)):
-    yo = productor_riego(authorization)
+    yo = usuario_actual(authorization)
     try:
         with engine.begin() as conexion:
             return registro_riego.crear_parcela(conexion, yo["id_usuario"], datos.model_dump())
@@ -100,7 +88,7 @@ def registrar_parcela(datos: DatosParcela, authorization: str | None = Header(No
 
 @router.put("/parcelas/{id_parcela}")
 def editar_parcela(id_parcela: int, datos: DatosParcela, authorization: str | None = Header(None)):
-    yo = productor_riego(authorization)
+    yo = usuario_actual(authorization)
     try:
         with engine.begin() as conexion:
             _mi_parcela(conexion, id_parcela, yo)
@@ -118,7 +106,7 @@ def diagnostico(id_parcela: int, authorization: str | None = Header(None)):
     Calcula la recomendacion de hoy con los datos guardados de la parcela y el clima
     real de su ubicacion (FAO-56 + logica difusa), y la guarda en la base de datos.
     """
-    yo = productor_riego(authorization)
+    yo = usuario_actual(authorization)
     try:
         with engine.connect() as conexion:
             parcela = _mi_parcela(conexion, id_parcela, yo)
@@ -158,7 +146,7 @@ class DecisionRiego(BaseModel):
 
 @router.post("/decision")
 def guardar_decision(datos: DecisionRiego, authorization: str | None = Header(None)):
-    yo = productor_riego(authorization)
+    yo = usuario_actual(authorization)
     try:
         with engine.begin() as conexion:
             id_parcela = registro_riego.parcela_de_recomendacion(conexion, datos.id_recomendacion)
@@ -174,7 +162,7 @@ def guardar_decision(datos: DecisionRiego, authorization: str | None = Header(No
 
 @router.get("/parcelas/{id_parcela}/historial")
 def ver_historial(id_parcela: int, limite: int = 10, authorization: str | None = Header(None)):
-    yo = productor_riego(authorization)
+    yo = usuario_actual(authorization)
     with engine.connect() as conexion:
         _mi_parcela(conexion, id_parcela, yo)
         return registro_riego.historial(conexion, id_parcela, min(max(limite, 1), 100))

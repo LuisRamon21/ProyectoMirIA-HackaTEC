@@ -23,6 +23,7 @@ load_dotenv()
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 API_COMUNIDAD = f"{API_URL}/api/comunidad"
 API_CAPACITACION = f"{API_URL}/api/capacitacion"
+RIEGO_URL = os.getenv("RIEGO_URL", "http://localhost:8502").rstrip("/")
 REGIONES = ["Delicias", "Cuauhtémoc", "Camargo", "Chihuahua", "Otra"]
 
 CATEGORIAS = {
@@ -1131,6 +1132,13 @@ for clave, valor in {"token": None, "usuario": None, "aviso": None, "invitado": 
                      "registro": None}.items():
     st.session_state.setdefault(clave, valor)
 
+# Sesion compartida: si se llega desde Riego, la sesion viene en el enlace (?sesion=...)
+token_enlace = st.query_params.get("sesion")
+if token_enlace:
+    st.query_params.clear()  # no dejar el token en la barra de direcciones
+    if not st.session_state.token:
+        st.session_state.token = token_enlace  # se valida abajo con /yo
+
 # Los puntos y el rango cambian al participar: se vuelven a pedir en cada recarga
 if st.session_state.token:
     ok_yo, datos_yo = llamar_api("GET", "/yo")
@@ -1158,6 +1166,9 @@ if not yo and not st.session_state.invitado:
 # --- Menu lateral ---------------------------------------------------------------
 with st.sidebar:
     st.markdown(marca(48), unsafe_allow_html=True)
+    sesion = f"/?sesion={st.session_state.token}" if yo else ""
+    st.link_button("💧 Ir a B.A.W.Í. Riego", f"{RIEGO_URL}{sesion}", width="stretch",
+                   help="Abre Riego con tu misma sesión." if yo else "Abre B.A.W.Í. Riego.")
     st.write("")
     st.markdown('<div class="bawi-etiqueta">Tu espacio</div>', unsafe_allow_html=True)
     st.radio("Menú", list(SECCIONES), format_func=lambda s: SECCIONES[s], key="menu",

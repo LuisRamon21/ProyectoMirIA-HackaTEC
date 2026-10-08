@@ -65,22 +65,17 @@ python -m backend.seed_formularios --aprobar
 
 Para comprobar la conexión a la base: `python -m backend.db`
 
-## Cuentas y suscripción de B.A.W.Í. Riego
+## Cuentas
 
-Riego es un servicio de pago y pide **iniciar sesión** con la misma cuenta de Comunidad.
+Riego y Comunidad usan **la misma cuenta**. Riego pide iniciar sesión (o crear una cuenta con
+el código que llega al correo).
 
-1. El productor crea su cuenta (en la app de Riego o en Comunidad) con su correo.
-2. Cuando paga, se activa su suscripción:
-
-   ```bash
-   python -m backend.suscripcion_riego --activar productor@correo.com
-   ```
-
-3. Entra a Riego, registra sus parcelas (cultivo, etapa, sistema de riego, bomba, horas de
-   riego habituales y, si quiere, la ubicación exacta) y recibe su recomendación diaria.
-   Cada productor solo ve sus propias parcelas, recomendaciones e historial.
-
-Otros comandos: `--lista` (cuentas con Riego activo) y `--desactivar <correo>`.
+- En Riego cada productor registra sus parcelas (cultivo, etapa, sistema de riego, bomba, horas
+  de riego habituales y, si quiere, la ubicación exacta) y recibe su recomendación diaria.
+  Solo ve sus propias parcelas, recomendaciones e historial.
+- El botón **🌱 Ir a B.A.W.Í. Comunidad** (arriba en el panel izquierdo de Riego) abre Comunidad
+  con la misma sesión, y **💧 Ir a B.A.W.Í. Riego** en Comunidad hace lo contrario.
+  Las direcciones de cada app se configuran en `.env` (`RIEGO_URL`, `COMUNIDAD_URL`).
 
 ## Ejecutar
 
@@ -119,7 +114,6 @@ backend/main.py              API (FastAPI)
 backend/routers/riego.py     Rutas de Riego: parcelas, diagnóstico, decisión e historial (con sesión)
 backend/routers/             Rutas de Comunidad y Capacitación (comunidad.py, capacitacion.py)
 backend/services/            Clima, FAO-56, lógica difusa, ahorro, catálogos, cuentas, correo, puntos
-backend/suscripcion_riego.py Activa o quita la suscripción de pago de Riego
 backend/seed_*.py            Carga del contenido de Capacitación
 database/bawi_database.sql   Esquema completo de la base de datos
 database/formularios.json    Formularios de Capacitación
