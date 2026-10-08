@@ -1,73 +1,62 @@
-import numpy as np
-import skfuzzy as fuzz
-from skfuzzy import control as ctrl
+import os
+import requests
+from typing import Optional, Dict
+from dotenv import load_dotenv
 
-def evaluar_riesgo_cultivo(deficit_etc_mm: float, temp_max_pronostico: float) -> dict:
-    """
-    Evalúa el nivel de riesgo de estrés hídrico del cultivo.
-    Retorna un diccionario con el puntaje (0-100) y la etiqueta de riesgo.
-    """
-    
-
-    deficit = ctrl.Antecedent(np.arange(0, 16, 0.1), 'deficit')
-
-    temperatura = ctrl.Antecedent(np.arange(10, 46, 1), 'temperatura')
-    
-    
-    riesgo = ctrl.Consequent(np.arange(0, 101, 1), 'riesgo')
-
-  
-    deficit.automf(names=['bajo', 'normal', 'alto'])
-    temperatura.automf(names=['fresca', 'calida', 'extrema'])
-
-    
-    riesgo['bajo'] = fuzz.trimf(riesgo.universe, [0, 0, 40])
-    riesgo['moderado'] = fuzz.trimf(riesgo.universe, [30, 50, 70])
-    riesgo['critico'] = fuzz.trimf(riesgo.universe, [60, 100, 100])
-
-
-    regla1 = ctrl.Rule(deficit['bajo'] & temperatura['fresca'], riesgo['bajo'])
-    
-  
-    regla2 = ctrl.Rule(deficit['alto'] & temperatura['fresca'], riesgo['moderado'])
-    
-    
-    regla3 = ctrl.Rule(deficit['normal'] & temperatura['extrema'], riesgo['moderado'])
-    
-    
-    regla4 = ctrl.Rule(deficit['alto'] & (temperatura['calida'] | temperatura['extrema']), riesgo['critico'])
-
-    
-    sistema_ctrl = ctrl.ControlSystem([regla1, regla2, regla3, regla4])
-    simulador = ctrl.ControlSystemSimulation(sistema_ctrl)
-
-    simulador.input['deficit'] = deficit_etc_mm
-    simulador.input['temperatura'] = temp_max_pronostico
-    simulador.compute()
-    
-    puntaje = round(simulador.output['riesgo'], 1)
-    
- 
-    if puntaje >= 65:
-        etiqueta = "CRÍTICO"
-        mensaje = "La planta entrará en estrés hídrico severo si no se riega hoy. Alta evaporación esperada."
-    elif puntaje >= 35:
-        etiqueta = "MODERADO"
-        mensaje = "Déficit manejable. Puedes posponer el riego si tienes tareas de fertilización pendientes."
-    else:
-        etiqueta = "BAJO"
-        mensaje = "Humedad óptima. No se recomienda regar para evitar asfixia radicular y ahorrar energía."
-
-    return {
-        "puntaje_riesgo": puntaje,
-        "etiqueta": etiqueta,
-        "mensaje_educativo": mensaje,
-        "recomendacion_mm": deficit_etc_mm 
+def obtener_clima_actual(api_key: str, ciudad: str = "Chihuahua,MX") -> Optional[Dict]:
+   
+    url = "https://api.openweathermap.org/data/2.5/weather"
+    parametros = {
+        "q": ciudad,
+        "appid": api_key,
+        "units": "metric",  
+        "lang": "es"        
     }
 
+    try:
+     
+        respuesta = requests.get(url, params=parametros, timeout=5)
+        
+        
+        respuesta.raise_for_status()
+        
+       
+        datos_json = respuesta.json()
+        
+        
+        clima_limpio = {
+            "temperatura_c": datos_json["main"]["temp"],
+            "humedad_pct": datos_json["main"]["humidity"],
+            "viento_ms": datos_json["wind"]["speed"],
+            "descripcion": datos_json["weather"][0]["description"]
+        }
+        
+        return clima_limpio
+
+    except requests.exceptions.HTTPError as error_http:
+        print(f"Error de HTTP (Revisa tu API Key o el nombre de la ciudad): {error_http}")
+    except requests.exceptions.ConnectionError:
+        print("Error de conexión: No se pudo conectar a los servidores de OpenWeatherMap.")
+    except requests.exceptions.Timeout:
+        print("Error de tiempo de espera: La API tardó demasiado en responder.")
+    except Exception as e:
+        print(f"Ocurrió un error inesperado: {e}")
+        
+    return None
 
 if __name__ == "__main__":
-   
-    resultado = evaluar_riesgo_cultivo(deficit_etc_mm=11.5, temp_max_pronostico=38.0)
-    print(f"Riesgo: {resultado['puntaje_riesgo']}% -> {resultado['etiqueta']}")
-    print(f"Por qué: {resultado['mensaje_educativo']}")
+
+  
+    MI_API_KEY = "TU_API_KEY_AQUI" 
+    
+    print("Consultando el clima para Chihuahua...")
+    datos_actuales = obtener_clima_actual(MI_API_KEY)
+    
+    if datos_actuales:
+        print("\n--- Datos recibidos con éxito ---")
+        print(f"Temperatura: {datos_actuales['temperatura_c']} °C")
+        print(f"Humedad:     {datos_actuales['humedad_pct']} %")
+        print(f"Viento:      {datos_actuales['viento_ms']} m/s")
+        print(f"Condición:   {datos_actuales['descripcion'].capitalize()}")
+    else:
+        print("\nNo se pudieron obtener los datos. Revisa los mensajes de error arriba.")
