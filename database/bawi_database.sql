@@ -1,8 +1,9 @@
 -- ========================================================
--- B.A.W.I. - Base de datos en SQL Server
--- Script de Luis con los ajustes para Riego y Comunidad.
+-- B.A.W.I. - Base de datos en SQL Server (Riego, Comunidad y Capacitacion)
 -- Ejecutar en SSMS: Archivo > Abrir > Archivo... > Ejecutar (F5)
+--   o en terminal: sqlcmd -S localhost\SQLEXPRESS -E -C -f 65001 -i database\bawi_database.sql
 -- OJO: borra la base "bawi" si ya existe y la crea de nuevo.
+-- Despues se carga el contenido de Capacitacion (ver README.md).
 -- ========================================================
 
 -- ========================================================
@@ -21,6 +22,10 @@ CREATE DATABASE bawi;
 GO
 
 USE bawi;
+GO
+-- Necesario para el indice filtrado de correo (sqlcmd los trae apagados por defecto)
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
 GO
 
 -- ========================================================
@@ -57,7 +62,7 @@ CREATE TABLE clima_diario (
     prob_lluvia_pct TINYINT DEFAULT 0,
     lluvia_mm DECIMAL(5,1) DEFAULT 0,
     et0_mm DECIMAL(4,2) NOT NULL,
-    fuente NVARCHAR(30) DEFAULT 'openweather',
+    fuente NVARCHAR(30) DEFAULT 'open-meteo',
     consultado_en DATETIME DEFAULT GETDATE(),
     UNIQUE (municipio, fecha)
 );
@@ -88,6 +93,18 @@ CREATE TABLE usuarios (
 -- Correo unico (se permiten varios NULL)
 CREATE UNIQUE INDEX uq_usuarios_correo ON usuarios(correo) WHERE correo IS NOT NULL;
 
+-- Cuentas esperando el codigo de verificacion del correo
+CREATE TABLE registros_pendientes (
+    correo NVARCHAR(120) PRIMARY KEY,
+    nombre NVARCHAR(80) NOT NULL,
+    municipio NVARCHAR(60) NOT NULL,
+    password_hash NVARCHAR(255) NOT NULL,
+    codigo_hash NVARCHAR(64) NOT NULL,
+    intentos TINYINT NOT NULL DEFAULT 0,
+    enviado_en DATETIME NOT NULL,
+    expira_en DATETIME NOT NULL
+);
+
 CREATE TABLE etapas_cultivo (
     id_etapa INT PRIMARY KEY IDENTITY(1,1),
     id_cultivo INT NOT NULL,
@@ -108,6 +125,10 @@ CREATE TABLE quizzes (
     id_rango_minimo TINYINT NULL,
     puntos_por_acierto INT DEFAULT 10,
     activo BIT DEFAULT 1,
+    ejemplo NVARCHAR(400) NULL,      -- ejemplo de campo de la tarjeta "Conoce una palabra"
+    codigo NVARCHAR(10) NULL,        -- codigo del formulario (N1-F01)
+    contexto NVARCHAR(MAX) NULL,     -- caso del formulario
+    estado NVARCHAR(12) NOT NULL CONSTRAINT df_quizzes_estado DEFAULT 'aprobada',
     FOREIGN KEY (id_rango_minimo) REFERENCES rangos(id_rango)
 );
 
@@ -149,6 +170,7 @@ CREATE TABLE publicaciones (
     audio_ruta NVARCHAR(255) NULL,
     categoria NVARCHAR(20) DEFAULT 'otro' CHECK (categoria IN ('riego', 'plagas', 'suelo', 'cultivo', 'otro')),
     creada_en DATETIME DEFAULT GETDATE(),
+    editada_en DATETIME NULL,
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
 );
 GO
@@ -161,6 +183,8 @@ CREATE TABLE preguntas (
     enunciado NVARCHAR(MAX) NOT NULL,
     explicacion NVARCHAR(MAX) NOT NULL,
     orden TINYINT NOT NULL,
+    pista NVARCHAR(400) NULL,        -- ayuda que se muestra cuando la respuesta es incorrecta
+    fuentes NVARCHAR(40) NULL,
     FOREIGN KEY (id_quiz) REFERENCES quizzes(id_quiz) ON DELETE CASCADE
 );
 
@@ -303,7 +327,7 @@ INSERT INTO rangos (id_rango, nombre, insignia, puntos_min, puntos_max, descripc
 
 -- Catálogo de Cultivos con inserción directa sobre IDENTITY permitida o usando inserción simple si se omite el ID explícito.
 -- Nota: Para insertar un valor explícito en una columna IDENTITY en SQL Server, es necesario activar IDENTITY_INSERT.
--- Mismos cultivos, etapas y Kc que usa el orquestador (backend/services/orquestador.py)
+-- El orquestador (backend/services/orquestador.py) lee el Kc de estas tablas
 SET IDENTITY_INSERT cultivos ON;
 INSERT INTO cultivos (id_cultivo, clave, nombre, descripcion) VALUES
 (1, N'nogal', N'Nogal pecanero', N'Cultivo de nogal pecanero'),

@@ -8,7 +8,7 @@ Los datos se leen del archivo .env:
     DB_USER=        (vacio = entrar con el usuario de Windows)
     DB_PASSWORD=
 
-Prueba rapida desde la raiz del proyecto:
+Verificar la conexion desde la raiz del proyecto:
     python -m backend.db
 """
 import os

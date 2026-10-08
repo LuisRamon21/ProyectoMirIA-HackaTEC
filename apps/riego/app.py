@@ -2,7 +2,7 @@
 B.A.W.I. Riego - app para el agricultor (Streamlit).
 
 Pide el diagnostico al backend (FastAPI) y lo muestra con:
-- clima actual, pronostico de 24 h y calculo FAO-56 (ET0, Kc, ETc)
+- clima real de la parcela (Open-Meteo), pronostico de 24 h y calculo FAO-56 (ET0, Kc, ETc)
 - riesgo de estres del cultivo y cuanto reponer segun la lluvia (motores difusos)
 - horas de riego y ahorro de agua, energia y dinero (Tarifa 9-CU)
 - "Aprende el Porque": la explicacion en lenguaje sencillo
@@ -21,20 +21,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 API_URL = os.getenv("API_URL", "http://localhost:8000")
-ID_PARCELA = int(os.getenv("RIEGO_ID_PARCELA", "1"))  # parcela del productor de la demo
+ID_PARCELA = int(os.getenv("RIEGO_ID_PARCELA", "1"))  # parcela del productor (tabla parcelas)
 
+# Nombre que se muestra -> clave del municipio en el backend (backend/services/clima.py)
 CIUDADES = {
-    "Delicias": "Delicias,MX",
-    "Cuauhtémoc": "Cuauhtemoc,MX",
-    "Camargo": "Camargo,MX",
-    "Chihuahua": "Chihuahua,MX",
-}
-CULTIVOS = {"Nogal": "nogal", "Manzana": "manzana"}
-ETAPAS = {
-    "Inicial": "inicial",
-    "Desarrollo": "desarrollo",
-    "Media (máximo consumo)": "media",
-    "Final": "final",
+    "Delicias": "Delicias",
+    "Cuauhtémoc": "Cuauhtemoc",
+    "Camargo": "Camargo",
+    "Chihuahua": "Chihuahua",
 }
 MOTIVOS_AJUSTE = ["Sección en mantenimiento", "Fertilización programada", "Limitación de agua en el pozo", "Otro"]
 RAZONES_RECHAZO = ["Cosecha en curso", "Suelo saturado por lluvia", "Falla en el equipo de bombeo", "Otro"]
@@ -68,10 +62,18 @@ def es_error(respuesta) -> bool:
 
 def cargar_parcela() -> dict | None:
     """Datos de la parcela guardados en la BD (una vez por sesion)."""
-    if "parcela" not in st.session_state:
+    if not st.session_state.get("parcela"):  # si fallo, se vuelve a intentar en la siguiente recarga
         respuesta = llamar_api("GET", f"/api/riego/parcelas/{ID_PARCELA}")
         st.session_state.parcela = None if es_error(respuesta) else respuesta
     return st.session_state.parcela
+
+
+def cargar_cultivos() -> list[dict] | None:
+    """Cultivos y etapas con su Kc, leidos de la BD (una vez por sesion)."""
+    if not st.session_state.get("cultivos"):
+        respuesta = llamar_api("GET", "/api/riego/cultivos")
+        st.session_state.cultivos = None if es_error(respuesta) else respuesta
+    return st.session_state.cultivos
 
 
 def registrar_decision(decision: str, horas: float, motivo: str = "") -> None:
@@ -101,9 +103,20 @@ st.session_state.setdefault("historial", [])  # solo se usa si no hay base de da
 st.session_state.setdefault("reporte", None)
 st.session_state.setdefault("ultima_decision", None)
 parcela = cargar_parcela()
+cultivos = cargar_cultivos()
 
 st.title("💧 B.A.W.Í. Riego")
 st.caption("Recomendación de riego explicada, para que decidas tú con información.")
+
+if not cultivos:
+    st.error(f"No se pudo conectar con el backend en {API_URL} o con la base de datos. "
+             "Revisa que la API y SQL Server estén corriendo y recarga la página.")
+    st.stop()
+
+# Nombre que se muestra -> clave en la BD (las etapas son las mismas para todos los cultivos)
+CULTIVOS = {c["nombre"]: c["clave"] for c in cultivos}
+ETAPAS = {e["nombre"]: e["clave"] for c in cultivos for e in c["etapas"]}
+
 
 def indice_de(opciones: dict, valor, por_defecto: int = 0) -> int:
     """Posicion de un valor guardado (ej. 'nogal') dentro de un selectbox."""
@@ -121,7 +134,7 @@ with st.sidebar:
     # Formulario: mover un numero no recarga la pagina; todo se aplica al presionar "Calcular"
     with st.form("form_parcela", border=False):
         st.header("Tu parcela")
-        ciudad_txt = st.selectbox("Región", list(CIUDADES), index=indice_de(CIUDADES, f"{p.get('municipio')},MX"))
+        ciudad_txt = st.selectbox("Región", list(CIUDADES), index=indice_de(CIUDADES, p.get("municipio")))
         cultivo_txt = st.selectbox("Cultivo", list(CULTIVOS), index=indice_de(CULTIVOS, p.get("cultivo")))
         etapa_txt = st.selectbox("Etapa del cultivo", list(ETAPAS), index=indice_de(ETAPAS, p.get("etapa")))
 
@@ -142,8 +155,6 @@ with st.sidebar:
             help="Con esto calculamos cuánto ahorras siguiendo la recomendación.",
         )
 
-        modo_demo = st.toggle("Modo demostración (sin internet)", value=False,
-                              help="Usa un clima de ejemplo. El backend debe estar corriendo.")
         calcular = st.form_submit_button("Calcular recomendación", type="primary", width="stretch")
 
 if calcular:
@@ -158,7 +169,6 @@ if calcular:
             "superficie_ha": superficie_ha,
             "potencia_bomba_kw": potencia_kw,
             "horas_habituales": horas_habituales,
-            "modo_demo": modo_demo,
             "id_parcela": parcela["id_parcela"] if parcela else None,
         })
 
@@ -169,10 +179,10 @@ if reporte is None:
 
 if reporte.get("error"):
     st.error(reporte.get("mensaje", "Ocurrió un error."))
-    st.caption("Si no hay internet, activa el modo demostración (el backend debe seguir corriendo).")
     st.stop()
 
 clima = reporte["clima_actual"]
+dia = reporte["clima_dia"]
 pron = reporte["pronostico_24h"]
 calc = reporte["calculos"]
 diag = reporte["diagnostico_ia"]
@@ -180,12 +190,8 @@ riego = reporte["riego"]
 ahorro = reporte["ahorro"]
 horas = riego["horas"]
 
-if reporte["metadata_app"].get("modo_demo"):
-    st.warning("Mostrando clima de ejemplo (modo demostración).")
 if reporte.get("aviso_bd"):
     st.warning("La recomendación no se guardó en la base de datos; tus decisiones quedarán solo en esta sesión.")
-if not pron["disponible"]:
-    st.warning("No se pudo obtener el pronóstico; la recomendación no descuenta lluvia.")
 
 # --- Recomendacion principal ---------------------------------------------------
 st.subheader("Recomendación de hoy")
@@ -214,12 +220,20 @@ else:
 
 # --- Clima ----------------------------------------------------------------------
 st.subheader(f"Clima en {ciudad_txt}")
+st.caption(f"Ahora: {clima['descripcion']}")
 c1, c2, c3, c4, c5 = st.columns(5)
 c1.metric("Temperatura", f"{clima['temperatura_c']} °C")
 c2.metric("Humedad", f"{clima['humedad_pct']} %")
 c3.metric("Viento", f"{clima['viento_ms']} m/s")
 c4.metric("Máxima próximas 24 h", f"{pron['temp_max_c']} °C")
 c5.metric("Prob. de lluvia 24 h", f"{pron['prob_lluvia_pct']} %")
+c1, c2, c3, c4, c5 = st.columns(5)
+c1.metric("Máxima de hoy", f"{dia['temp_max_c']:.1f} °C")
+c2.metric("Mínima de hoy", f"{dia['temp_min_c']:.1f} °C")
+c3.metric("Humedad mín. / máx.", f"{dia['humedad_min_pct']:.0f} / {dia['humedad_max_pct']:.0f} %")
+c4.metric("Radiación solar", f"{dia['radiacion_mj_m2']:.1f} MJ/m²")
+c5.metric("Altitud", f"{dia['altitud_m']:,.0f} m")
+st.caption("Datos del día para el cálculo FAO-56 · Fuente: Open-Meteo (modelos meteorológicos nacionales).")
 
 # --- Aprende el Porque ---------------------------------------------------------
 if pron["prob_lluvia_pct"] > 0:
@@ -235,10 +249,11 @@ else:
 with st.expander("📘 Aprende el porqué", expanded=True):
     st.markdown(
         f"""
-**1. Cuánta agua se pierde.** Hoy en **{ciudad_txt}** hay **{clima['temperatura_c']} °C**,
-**{clima['humedad_pct']} %** de humedad y viento de **{clima['viento_ms']} m/s**. Con ese clima, un pasto de
-referencia pierde **{calc['et0_mm']} mm** de agua al día entre evaporación del suelo y transpiración de las
-hojas (**ET₀**).
+**1. Cuánta agua se pierde.** Hoy en **{ciudad_txt}** la temperatura va de **{dia['temp_min_c']:.1f}** a
+**{dia['temp_max_c']:.1f} °C**, la humedad de **{dia['humedad_min_pct']:.0f} %** a **{dia['humedad_max_pct']:.0f} %**,
+el viento promedia **{dia['viento_medio_ms']:.1f} m/s** y el sol aporta **{dia['radiacion_mj_m2']:.1f} MJ/m²**.
+Con ese clima, un pasto de referencia pierde **{calc['et0_mm']} mm** de agua al día entre evaporación del suelo
+y transpiración de las hojas (**ET₀**).
 
 **2. Cuánto consume tu cultivo.** Tu **{cultivo_txt.lower()}** en etapa **{etapa_txt.lower()}** consume
 **{calc['kc_aplicado']} veces** esa cantidad (coeficiente de cultivo **Kc**): **{calc['etc_mm']} mm**

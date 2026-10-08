@@ -1,6 +1,9 @@
+"""
+Motores de logica difusa de B.A.W.I. Riego (scikit-fuzzy):
 
-
-
+1. Riesgo de estres hidrico del cultivo si no se riega (deficit + temperatura maxima).
+2. Porcentaje del deficit que conviene reponer hoy (deficit + probabilidad de lluvia).
+"""
 import numpy as np
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
@@ -125,13 +128,3 @@ def calcular_factor_riego(deficit_mm: float, prob_lluvia_pct: float) -> float:
     resultado = float(simulador.output["factor"])
     return round(min(max(resultado, 0.0), 100.0), 1)
 
-
-if __name__ == "__main__":
-    print("== Riesgo de estres (deficit, temperatura)")
-    for d, t in [(11.5, 38), (2, 15), (8, 30), (16, 45), (0, 10)]:
-        r = evaluar_riesgo_cultivo(d, t)
-        print(f"deficit {d} mm, {t} C -> {r['puntaje_riesgo']} ({r['etiqueta']})")
-
-    print("\n== Porcentaje del deficit a reponer (deficit, lluvia)")
-    for d, p in [(12.5, 0), (12.5, 95), (6, 40), (2, 10), (16, 100), (0, 0)]:
-        print(f"deficit {d} mm, lluvia {p}% -> reponer {calcular_factor_riego(d, p)}%")

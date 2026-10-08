@@ -5,7 +5,7 @@ C1 - Cuentas: crear cuenta, iniciar sesion y saber quien soy.
 C2 - Publicaciones: ver el feed (sin sesion) y publicar con foto o nota de voz (con sesion).
 C3 - Respuestas: ver una publicacion con sus respuestas y responder (con nota de voz y,
      si el usuario usa B.A.W.I. Riego, con su dato de campo real).
-D1 - Cuentas con correo: se entra con correo (o con el usuario de las cuentas de demo).
+D1 - Cuentas con correo: se entra con el correo o con el nombre de usuario.
 D2 - Rangos y puntos: solo Especialista Agronomo y Maestro de la Tierra responden; likes en
      publicaciones y respuestas; "Le funciono al autor"; puntos segun backend/services/puntos.py.
 Para las rutas que piden sesion, la app manda la cabecera:
@@ -23,7 +23,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import bindparam, text
 
 from backend.db import engine
-from backend.services.correo import correo_configurado, enviar_codigo
+from backend.services.correo import CorreoNoConfigurado, enviar_codigo
 from backend.services.cuentas import (crear_token, generar_codigo, hash_codigo, hashear_password, leer_token,
                                       verificar_password)
 from backend.services import puntos as reglas
@@ -109,7 +109,7 @@ class Registro(BaseModel):
 
 
 class Login(BaseModel):
-    correo: str = Field(description="correo; las cuentas de demo tambien entran con su usuario")
+    correo: str = Field(description="correo o nombre de usuario")
     password: str
 
 
@@ -143,6 +143,10 @@ class Reenvio(BaseModel):
 def _enviar_codigo(correo: str, nombre: str, codigo: str) -> None:
     try:
         enviar_codigo(correo, nombre, codigo, MINUTOS_CODIGO)
+    except CorreoNoConfigurado:
+        raise HTTPException(status_code=503, detail="El envío de correos no está configurado en el servidor "
+                                                    "(SMTP_USER y SMTP_PASSWORD en .env). No se pueden crear "
+                                                    "cuentas nuevas por ahora.")
     except RuntimeError:
         raise HTTPException(status_code=502, detail="No pudimos enviar el correo. Revisa que esté bien escrito "
                                                     "o intenta de nuevo en un momento.")
@@ -177,7 +181,7 @@ def solicitar_registro(datos: Registro):
              "ahora": t["ahora"], "expira": t["expira"]},
         )
         _enviar_codigo(correo, datos.nombre.strip(), codigo)
-    return {"correo": correo, "minutos": MINUTOS_CODIGO, "modo_prueba": not correo_configurado()}
+    return {"correo": correo, "minutos": MINUTOS_CODIGO}
 
 
 @router.post("/registro/reenviar")
@@ -201,7 +205,7 @@ def reenviar_codigo(datos: Reenvio):
             {"h": hash_codigo(correo, codigo), "ahora": t["ahora"], "expira": t["expira"], "c": correo},
         )
         _enviar_codigo(correo, pendiente["nombre"], codigo)
-    return {"correo": correo, "minutos": MINUTOS_CODIGO, "modo_prueba": not correo_configurado()}
+    return {"correo": correo, "minutos": MINUTOS_CODIGO}
 
 
 @router.post("/registro/verificar")
@@ -497,7 +501,7 @@ CONSULTA_RESPUESTAS = (
     "(SELECT COUNT(*) FROM votos_comentario v3 "
     " WHERE v3.id_comentario = c.id_comentario AND v3.id_usuario = :visitante) AS yo_like, "
     "r.fecha AS riego_fecha, r.etc_mm, r.horas_sugeridas, r.horas_aplicadas, r.estado AS riego_estado, "
-    "r.agua_ahorrada_m3, r.riesgo, cd.temp_max_c, cd.prob_lluvia_pct, cd.fuente, "
+    "r.agua_ahorrada_m3, r.riesgo, cd.temp_max_c, cd.prob_lluvia_pct, "
     "cu.nombre AS cultivo, ec.nombre AS etapa, pa.municipio AS parcela_municipio "
     "FROM comentarios c "
     "JOIN usuarios u ON u.id_usuario = c.id_usuario "
@@ -529,7 +533,6 @@ def respuesta_publica(fila) -> dict:
             "estado": fila["riego_estado"],
             "riesgo": fila["riesgo"],
             "agua_ahorrada_m3": _numero(fila["agua_ahorrada_m3"]),
-            "clima_de_ejemplo": fila["fuente"] == "ejemplo",
         }
     return {
         "id_respuesta": fila["id_comentario"],

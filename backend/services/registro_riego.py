@@ -6,15 +6,13 @@ Guarda en la base de datos lo que pasa en B.A.W.I. Riego:
 
 Hay una sola recomendacion por parcela por dia: si se vuelve a calcular,
 se actualiza la del dia y regresa a "pendiente".
-
-Prueba rapida desde la raiz del proyecto (usa el modo demostracion):
-    python -m backend.services.registro_riego
 """
 from datetime import date, datetime
 
 from sqlalchemy import text
 
 from backend.services.ahorro import calcular_ahorro
+from backend.services.catalogo import precio_kwh_vigente
 
 DECISIONES = {"aceptada", "ajustada", "rechazada"}
 
@@ -23,7 +21,7 @@ def obtener_parcela(conexion, id_parcela: int) -> dict | None:
     """Datos de la parcela con las claves de cultivo y etapa que usa el orquestador."""
     fila = conexion.execute(
         text(
-            "SELECT p.id_parcela, p.nombre, p.municipio, p.area_ha, p.sistema, p.tasa_mm_h, "
+            "SELECT p.id_parcela, p.nombre, p.municipio, p.latitud, p.longitud, p.area_ha, p.sistema, p.tasa_mm_h, "
             "p.potencia_bomba_kw, p.horas_riego_habitual, c.clave AS cultivo, e.clave AS etapa, "
             "u.usuario, u.nombre AS productor "
             "FROM parcelas p "
@@ -37,18 +35,19 @@ def obtener_parcela(conexion, id_parcela: int) -> dict | None:
     if not fila:
         return None
     parcela = dict(fila)
-    for campo in ("area_ha", "tasa_mm_h", "potencia_bomba_kw", "horas_riego_habitual"):
-        parcela[campo] = float(parcela[campo])  # SQL Server regresa Decimal
+    for campo in ("latitud", "longitud", "area_ha", "tasa_mm_h", "potencia_bomba_kw", "horas_riego_habitual"):
+        if parcela[campo] is not None:
+            parcela[campo] = float(parcela[campo])  # SQL Server regresa Decimal
     return parcela
 
 
 def _guardar_clima(conexion, municipio: str, hoy: date, reporte: dict, et0: float) -> int:
-    clima, pron = reporte["clima_actual"], reporte["pronostico_24h"]
+    clima, dia, pron = reporte["clima_actual"], reporte["clima_dia"], reporte["pronostico_24h"]
     valores = {
         "municipio": municipio, "fecha": hoy, "temp": clima["temperatura_c"], "tmax": pron["temp_max_c"],
-        "hum": clima["humedad_pct"], "viento": clima["viento_ms"], "prob": pron["prob_lluvia_pct"],
-        "lluvia": pron["lluvia_mm"], "et0": et0,
-        "fuente": "ejemplo" if reporte["metadata_app"].get("modo_demo") else "openweather",
+        "tmin": dia["temp_min_c"], "hum": clima["humedad_pct"], "viento": clima["viento_ms"],
+        "rad": dia["radiacion_mj_m2"], "prob": pron["prob_lluvia_pct"], "lluvia": pron["lluvia_mm"], "et0": et0,
+        "fuente": reporte["metadata_app"]["fuente_clima"],
     }
     id_clima = conexion.execute(
         text("SELECT id_clima FROM clima_diario WHERE municipio = :municipio AND fecha = :fecha"), valores
@@ -56,18 +55,18 @@ def _guardar_clima(conexion, municipio: str, hoy: date, reporte: dict, et0: floa
     if id_clima:
         conexion.execute(
             text(
-                "UPDATE clima_diario SET temperatura_c = :temp, temp_max_c = :tmax, humedad_rel_pct = :hum, "
-                "viento_ms = :viento, prob_lluvia_pct = :prob, lluvia_mm = :lluvia, et0_mm = :et0, "
-                "fuente = :fuente WHERE id_clima = :id"
+                "UPDATE clima_diario SET temperatura_c = :temp, temp_max_c = :tmax, temp_min_c = :tmin, "
+                "humedad_rel_pct = :hum, viento_ms = :viento, radiacion_mj_m2 = :rad, prob_lluvia_pct = :prob, "
+                "lluvia_mm = :lluvia, et0_mm = :et0, fuente = :fuente, consultado_en = GETDATE() WHERE id_clima = :id"
             ),
             {**valores, "id": id_clima},
         )
         return id_clima
     conexion.execute(
         text(
-            "INSERT INTO clima_diario (municipio, fecha, temperatura_c, temp_max_c, humedad_rel_pct, viento_ms, "
-            "prob_lluvia_pct, lluvia_mm, et0_mm, fuente) "
-            "VALUES (:municipio, :fecha, :temp, :tmax, :hum, :viento, :prob, :lluvia, :et0, :fuente)"
+            "INSERT INTO clima_diario (municipio, fecha, temperatura_c, temp_max_c, temp_min_c, humedad_rel_pct, "
+            "viento_ms, radiacion_mj_m2, prob_lluvia_pct, lluvia_mm, et0_mm, fuente) "
+            "VALUES (:municipio, :fecha, :temp, :tmax, :tmin, :hum, :viento, :rad, :prob, :lluvia, :et0, :fuente)"
         ),
         valores,
     )
@@ -85,9 +84,10 @@ def _explicacion(reporte: dict) -> str:
     )
 
 
-def guardar_recomendacion(conexion, id_parcela: int, municipio: str, reporte: dict) -> int:
+def guardar_recomendacion(conexion, id_parcela: int, reporte: dict) -> int:
     """Guarda (o actualiza) la recomendacion de hoy y regresa su id."""
-    hoy = date.today()
+    hoy = date.fromisoformat(reporte["clima_dia"]["fecha"])  # fecha local de la parcela
+    municipio = reporte["metadata_app"]["municipio"]
     calc, riego = reporte["calculos"], reporte["riego"]
     id_clima = _guardar_clima(conexion, municipio, hoy, reporte, calc["et0_mm"])
     valores = {
@@ -148,6 +148,7 @@ def registrar_decision(conexion, id_recomendacion: int, decision: str, horas_apl
             tasa_mm_h=parcela["tasa_mm_h"],
             superficie_ha=parcela["area_ha"],
             potencia_bomba_kw=parcela["potencia_bomba_kw"],
+            precio_kwh=precio_kwh_vigente(conexion),
         )
     conexion.execute(
         text(
@@ -177,21 +178,3 @@ def historial(conexion, id_parcela: int, limite: int = 10) -> list[dict]:
         for f in filas
     ]
 
-
-if __name__ == "__main__":
-    from backend.db import engine
-    from backend.services.orquestador import generar_diagnostico_riego
-
-    with engine.begin() as conexion:
-        parcela = obtener_parcela(conexion, 1)
-        print("Parcela:", parcela["nombre"], "-", parcela["productor"], "-", parcela["cultivo"], parcela["etapa"])
-        reporte = generar_diagnostico_riego(
-            f"{parcela['municipio']},MX", parcela["cultivo"], parcela["etapa"],
-            tasa_mm_h=parcela["tasa_mm_h"], superficie_ha=parcela["area_ha"],
-            potencia_bomba_kw=parcela["potencia_bomba_kw"], horas_habituales=parcela["horas_riego_habitual"],
-            modo_demo=True,
-        )
-        id_rec = guardar_recomendacion(conexion, 1, parcela["municipio"], reporte)
-        print("Recomendacion guardada:", id_rec, "-", reporte["riego"]["horas"], "h sugeridas")
-        print("Decision:", registrar_decision(conexion, id_rec, "aceptada", reporte["riego"]["horas"]))
-        print("Historial:", historial(conexion, 1))

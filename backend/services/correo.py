@@ -7,8 +7,8 @@ Datos en el archivo .env (con Gmail se usa una "contraseña de aplicación", no 
     SMTP_USER=tucuenta@gmail.com
     SMTP_PASSWORD=abcdefghijklmnop
 
-Si SMTP_USER o SMTP_PASSWORD estan vacios, la app funciona en "modo prueba":
-el codigo NO se envia y se imprime en la terminal donde corre la API.
+Si SMTP_USER o SMTP_PASSWORD estan vacios no se pueden crear cuentas nuevas
+(la API responde que el envio de correos no esta configurado).
 """
 import os
 import smtplib
@@ -20,6 +20,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+class CorreoNoConfigurado(Exception):
+    """Faltan SMTP_USER o SMTP_PASSWORD en .env."""
+
+
 def correo_configurado() -> bool:
     return bool(os.getenv("SMTP_USER") and os.getenv("SMTP_PASSWORD"))
 
@@ -27,8 +31,7 @@ def correo_configurado() -> bool:
 def enviar_codigo(destino: str, nombre: str, codigo: str, minutos: int) -> None:
     """Envia el codigo. Lanza RuntimeError si el servidor de correo no lo acepta."""
     if not correo_configurado():
-        print(f"\n[B.A.W.Í. modo prueba] Código de verificación para {destino}: {codigo}\n", flush=True)
-        return
+        raise CorreoNoConfigurado()
     usuario = os.getenv("SMTP_USER")
     mensaje = EmailMessage()
     mensaje["Subject"] = f"{codigo} es tu código de B.A.W.Í. Comunidad"

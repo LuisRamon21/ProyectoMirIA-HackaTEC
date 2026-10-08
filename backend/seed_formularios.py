@@ -8,7 +8,7 @@ Cada pregunta guarda su explicacion (tambien se usa como ayuda tras un error) y 
 
 Todos entran como 'pendiente' (en revision) y NO se muestran en la app hasta aprobarlos.
 
-Requiere database/migracion_d4_cuentas_formularios.sql. No duplica: se puede correr varias veces.
+Requiere haber creado la base con database/bawi_database.sql. No duplica: se puede correr varias veces.
 Ejecutar desde la raiz del proyecto:
     python -m backend.seed_formularios                        carga los formularios (en revision)
     python -m backend.seed_formularios --aprobar              aprueba TODOS (ya revisados)

@@ -418,7 +418,6 @@ def dar_like(ruta: str) -> None:
 def mostrar_dato_riego(dato: dict) -> None:
     """Tarjeta con el calculo real de B.A.W.I. Riego que adjunto el productor.
     La barra muestra cuanto rego frente a lo recomendado."""
-    origen = " · clima de ejemplo" if dato["clima_de_ejemplo"] else ""
     estado = ESTADOS_RIEGO.get(dato["estado"], dato["estado"])
     aplicadas = dato["horas_aplicadas"] if dato["estado"] in ("aceptada", "ajustada") else None
     if aplicadas is not None and dato["horas_sugeridas"]:
@@ -429,7 +428,7 @@ def mostrar_dato_riego(dato: dict) -> None:
     ahorro = f" · ahorró {dato['agua_ahorrada_m3']:,.0f} m³" if dato["agua_ahorrada_m3"] else ""
     st.markdown(
         f'<div class="bawi-campo">'
-        f'<div class="cab">📊 Dato de campo de B.A.W.Í. Riego<span>{html.escape(dato["fecha"])}{origen}</span></div>'
+        f'<div class="cab">📊 Dato de campo de B.A.W.Í. Riego<span>{html.escape(dato["fecha"])}</span></div>'
         f'<div>🌳 {html.escape(dato["cultivo"])}, etapa {html.escape(dato["etapa"].lower())} · '
         f'{html.escape(dato["municipio"])}</div>'
         f'<div class="numeros">'
@@ -743,8 +742,6 @@ def pantalla_codigo() -> None:
     st.subheader("Escribe tu código")
     st.caption(f"Paso 2 de 2 · Enviamos un código de 6 números a **{registro['correo']}**. "
                f"Vence en {registro['minutos']} minutos. Si no lo ves, revisa la carpeta de spam.")
-    if registro.get("modo_prueba"):
-        st.info("Modo prueba: el envío de correos no está configurado. El código aparece en la terminal de la API.")
     with st.form("form_codigo", border=False):
         codigo = st.text_input("Código de verificación", max_chars=6, placeholder="000000")
         verificar = st.form_submit_button("Verificar y crear cuenta", type="primary", width="stretch")

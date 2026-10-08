@@ -15,8 +15,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 ITERACIONES = 120_000
-# Clave para firmar las sesiones. Pon una propia en .env (SECRET_KEY=...)
-SECRET_KEY = os.getenv("SECRET_KEY", "bawi-clave-de-desarrollo-cambiala")
+# Clave para firmar las sesiones y los codigos de verificacion (SECRET_KEY en .env)
+SECRET_KEY = os.getenv("SECRET_KEY", "")
+if len(SECRET_KEY) < 32:
+    raise RuntimeError(
+        "Falta SECRET_KEY en el archivo .env (minimo 32 caracteres). Genera una con:\n"
+        "    python -c \"import secrets; print(secrets.token_hex(32))\""
+    )
 
 
 def hashear_password(password: str) -> str:

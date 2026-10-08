@@ -6,7 +6,7 @@ Carga el contenido de Capacitacion de B.A.W.I. Comunidad.
 - Dinamica 3 "Verdadero o falso": cuestionarios de 4 afirmaciones con explicacion y pista.
   Se guardan como quizzes con tema 'verdadero_falso', sus preguntas y las opciones V/F.
 
-Requiere haber corrido antes database/migracion_d3_capacitacion.sql (columnas pista y ejemplo).
+Requiere haber creado la base con database/bawi_database.sql.
 Si un contenido ya existe (mismo titulo y tema), no lo duplica: se puede correr varias veces.
 
 Ejecutar desde la raiz del proyecto:
