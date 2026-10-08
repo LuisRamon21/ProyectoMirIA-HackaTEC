@@ -1,8 +1,20 @@
 -- ========================================================
+-- B.A.W.I. - Base de datos en SQL Server
+-- Script de Luis con los ajustes para Riego y Comunidad.
+-- Ejecutar en SSMS: Archivo > Abrir > Archivo... > Ejecutar (F5)
+-- OJO: borra la base "bawi" si ya existe y la crea de nuevo.
+-- ========================================================
+
+-- ========================================================
 -- 1. CREACIÓN Y CONFIGURACIÓN DE LA BASE DE DATOS
 -- ========================================================
+USE master;
+GO
 IF EXISTS (SELECT * FROM sys.databases WHERE name = 'bawi')
+BEGIN
+    ALTER DATABASE bawi SET SINGLE_USER WITH ROLLBACK IMMEDIATE;  -- cierra conexiones abiertas
     DROP DATABASE bawi;
+END
 GO
 
 CREATE DATABASE bawi;
@@ -24,8 +36,10 @@ CREATE TABLE rangos (
     descripcion NVARCHAR(150)
 );
 
+-- clave = el texto que usa el codigo (orquestador y apps)
 CREATE TABLE cultivos (
     id_cultivo INT PRIMARY KEY IDENTITY(1,1),
+    clave NVARCHAR(30) NOT NULL UNIQUE,
     nombre NVARCHAR(60) NOT NULL UNIQUE,
     descripcion NVARCHAR(200) NULL
 );
@@ -34,14 +48,16 @@ CREATE TABLE clima_diario (
     id_clima INT PRIMARY KEY IDENTITY(1,1),
     municipio NVARCHAR(60) NOT NULL,
     fecha DATE NOT NULL,
+    temperatura_c DECIMAL(4,1),
     temp_max_c DECIMAL(4,1),
     temp_min_c DECIMAL(4,1),
     humedad_rel_pct DECIMAL(4,1),
     viento_ms DECIMAL(4,1),
     radiacion_mj_m2 DECIMAL(5,2),
+    prob_lluvia_pct TINYINT DEFAULT 0,
     lluvia_mm DECIMAL(5,1) DEFAULT 0,
     et0_mm DECIMAL(4,2) NOT NULL,
-    fuente NVARCHAR(30) DEFAULT 'open-meteo',
+    fuente NVARCHAR(30) DEFAULT 'openweather',
     consultado_en DATETIME DEFAULT GETDATE(),
     UNIQUE (municipio, fecha)
 );
@@ -71,10 +87,12 @@ CREATE TABLE usuarios (
 CREATE TABLE etapas_cultivo (
     id_etapa INT PRIMARY KEY IDENTITY(1,1),
     id_cultivo INT NOT NULL,
+    clave NVARCHAR(20) NOT NULL,
     nombre NVARCHAR(60) NOT NULL,
     kc DECIMAL(4,2) NOT NULL,
     orden TINYINT NOT NULL,
     UNIQUE (id_cultivo, orden),
+    UNIQUE (id_cultivo, clave),
     FOREIGN KEY (id_cultivo) REFERENCES cultivos(id_cultivo)
 );
 
@@ -96,12 +114,11 @@ CREATE TABLE parcelas (
     id_etapa INT NOT NULL,
     nombre NVARCHAR(60) NOT NULL,
     municipio NVARCHAR(60) NOT NULL,
-    latitud DECIMAL(9,6) NOT NULL,
-    longitud DECIMAL(9,6) NOT NULL,
+    latitud DECIMAL(9,6) NULL,
+    longitud DECIMAL(9,6) NULL,
     area_ha DECIMAL(8,2) NOT NULL,
     sistema NVARCHAR(30) NOT NULL CHECK (sistema IN ('goteo','microaspersion')),
-    caudal_m3h DECIMAL(8,2) NOT NULL,
-    eficiencia DECIMAL(3,2) DEFAULT 0.90,
+    tasa_mm_h DECIMAL(5,2) NOT NULL,  -- mm por hora que aplica el sistema (dato de la app de Riego)
     potencia_bomba_kw DECIMAL(6,2) NOT NULL,
     horas_riego_habitual DECIMAL(4,2) NOT NULL,
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
@@ -122,10 +139,11 @@ CREATE TABLE movimientos_puntos (
 CREATE TABLE publicaciones (
     id_publicacion INT PRIMARY KEY IDENTITY(1,1),
     id_usuario INT NOT NULL,
+    titulo NVARCHAR(150) NOT NULL,
     texto NVARCHAR(MAX) NOT NULL,
     imagen_ruta NVARCHAR(255) NULL,
     audio_ruta NVARCHAR(255) NULL,
-    categoria NVARCHAR(20) DEFAULT 'general' CHECK (categoria IN ('riego', 'plagas', 'suelo', 'cosecha', 'general')),
+    categoria NVARCHAR(20) DEFAULT 'otro' CHECK (categoria IN ('riego', 'plagas', 'suelo', 'cultivo', 'otro')),
     creada_en DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
 );
@@ -150,7 +168,8 @@ CREATE TABLE recomendaciones_riego (
     et0_mm DECIMAL(4,2) NOT NULL,
     kc DECIMAL(4,2) NOT NULL,
     etc_mm DECIMAL(4,2) NOT NULL,
-    lluvia_efectiva_mm DECIMAL(5,1) DEFAULT 0,
+    riesgo NVARCHAR(10) NULL,
+    factor_reposicion_pct DECIMAL(5,1) NULL,
     lamina_neta_mm DECIMAL(4,2) NOT NULL,
     horas_sugeridas DECIMAL(4,2) NOT NULL,
     explicacion NVARCHAR(MAX) NOT NULL,
@@ -172,10 +191,13 @@ CREATE TABLE comentarios (
     id_publicacion INT NOT NULL,
     id_usuario INT NOT NULL,
     texto NVARCHAR(MAX) NOT NULL,
+    audio_ruta NVARCHAR(255) NULL,
+    id_recomendacion INT NULL,  -- dato de campo de B.A.W.I. Riego adjunto (opcional)
     creado_en DATETIME DEFAULT GETDATE(),
     -- Nota: En SQL Server múltiples rutas de borrado en cascada (CASCADE) hacia usuarios pueden generar error.
     FOREIGN KEY (id_publicacion) REFERENCES publicaciones(id_publicacion) ON DELETE CASCADE,
-    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
+    FOREIGN KEY (id_recomendacion) REFERENCES recomendaciones_riego(id_recomendacion)
 );
 
 CREATE TABLE opciones (
@@ -237,7 +259,7 @@ SELECT
     rr.et0_mm,
     rr.kc,
     rr.etc_mm,
-    rr.lluvia_efectiva_mm,
+    rr.factor_reposicion_pct,
     rr.horas_sugeridas,
     rr.horas_aplicadas,
     rr.estado,
@@ -266,24 +288,27 @@ INSERT INTO rangos (id_rango, nombre, insignia, puntos_min, puntos_max, descripc
 
 -- Catálogo de Cultivos con inserción directa sobre IDENTITY permitida o usando inserción simple si se omite el ID explícito.
 -- Nota: Para insertar un valor explícito en una columna IDENTITY en SQL Server, es necesario activar IDENTITY_INSERT.
+-- Mismos cultivos, etapas y Kc que usa el orquestador (backend/services/orquestador.py)
 SET IDENTITY_INSERT cultivos ON;
-INSERT INTO cultivos (id_cultivo, nombre, descripcion) VALUES
-(1, N'Nogal pecanero', N'Cultivo de nogal pecanero'),
-(2, N'Manzano', N'Cultivo de manzano'),
-(3, N'Alfalfa', N'Cultivo de alfalfa'),
-(4, N'Chile', N'Cultivo de chile'),
-(5, N'Algodón', N'Cultivo de algodón');
+INSERT INTO cultivos (id_cultivo, clave, nombre, descripcion) VALUES
+(1, N'nogal', N'Nogal pecanero', N'Cultivo de nogal pecanero'),
+(2, N'manzana', N'Manzano', N'Cultivo de manzano');
 SET IDENTITY_INSERT cultivos OFF;
 
--- Etapas por Cultivo (Valores FAO-56)
-SET IDENTITY_INSERT etapas_cultivo ON;
-INSERT INTO etapas_cultivo (id_etapa, id_cultivo, nombre, kc, orden) VALUES
-(1, 1, N'Desarrollo de fruto', 1.10, 1),
-(2, 2, N'Desarrollo de fruto', 0.95, 1),
-(3, 3, N'Crecimiento vegetativo', 1.15, 1),
-(4, 4, N'Floración y fructificación', 1.05, 1),
-(5, 5, N'Apertura de capullos', 1.00, 1);
-SET IDENTITY_INSERT etapas_cultivo OFF;
+INSERT INTO etapas_cultivo (id_cultivo, clave, nombre, kc, orden) VALUES
+(1, N'inicial', N'Inicial', 0.40, 1),
+(1, N'desarrollo', N'Desarrollo', 0.80, 2),
+(1, N'media', N'Media (máximo consumo)', 1.15, 3),
+(1, N'final', N'Final', 0.60, 4),
+(2, N'inicial', N'Inicial', 0.30, 1),
+(2, N'desarrollo', N'Desarrollo', 0.75, 2),
+(2, N'media', N'Media (máximo consumo)', 1.00, 3),
+(2, N'final', N'Final', 0.50, 4);
+
+-- Tarifa 9-CU de CFE, octubre 2026
+INSERT INTO tarifas_energia (nombre, precio_kwh, vigente_desde, fuente_url) VALUES
+(N'9-CU', 0.7600, '2026-10-01',
+ N'https://app.cfe.mx/Aplicaciones/CCFE/Tarifas/TarifasCRENegocio/Tarifas/AgricolaCargoUnico.aspx');
 GO
 
 -- ========================================================
