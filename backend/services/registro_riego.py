@@ -1,6 +1,7 @@
 """
 Guarda en la base de datos lo que pasa en B.A.W.I. Riego:
 
+- las parcelas de cada productor (alta y cambios de sus datos)
 - la recomendacion del dia de cada parcela (con el clima con que se calculo)
 - la decision del productor: aceptada, ajustada o rechazada, y su ahorro
 
@@ -15,30 +16,92 @@ from backend.services.ahorro import calcular_ahorro
 from backend.services.catalogo import precio_kwh_vigente
 
 DECISIONES = {"aceptada", "ajustada", "rechazada"}
+CAMPOS_NUMERICOS = ("latitud", "longitud", "area_ha", "tasa_mm_h", "potencia_bomba_kw", "horas_riego_habitual")
+
+CONSULTA_PARCELAS = (
+    "SELECT p.id_parcela, p.id_usuario, p.nombre, p.municipio, p.latitud, p.longitud, p.area_ha, p.sistema, "
+    "p.tasa_mm_h, p.potencia_bomba_kw, p.horas_riego_habitual, c.clave AS cultivo, e.clave AS etapa, "
+    "u.usuario, u.nombre AS productor "
+    "FROM parcelas p "
+    "JOIN cultivos c ON c.id_cultivo = p.id_cultivo "
+    "JOIN etapas_cultivo e ON e.id_etapa = p.id_etapa "
+    "JOIN usuarios u ON u.id_usuario = p.id_usuario "
+)
+
+
+def _parcela(fila) -> dict:
+    parcela = dict(fila)
+    for campo in CAMPOS_NUMERICOS:
+        if parcela[campo] is not None:
+            parcela[campo] = float(parcela[campo])  # SQL Server regresa Decimal
+    return parcela
 
 
 def obtener_parcela(conexion, id_parcela: int) -> dict | None:
     """Datos de la parcela con las claves de cultivo y etapa que usa el orquestador."""
     fila = conexion.execute(
-        text(
-            "SELECT p.id_parcela, p.nombre, p.municipio, p.latitud, p.longitud, p.area_ha, p.sistema, p.tasa_mm_h, "
-            "p.potencia_bomba_kw, p.horas_riego_habitual, c.clave AS cultivo, e.clave AS etapa, "
-            "u.usuario, u.nombre AS productor "
-            "FROM parcelas p "
-            "JOIN cultivos c ON c.id_cultivo = p.id_cultivo "
-            "JOIN etapas_cultivo e ON e.id_etapa = p.id_etapa "
-            "JOIN usuarios u ON u.id_usuario = p.id_usuario "
-            "WHERE p.id_parcela = :id"
-        ),
-        {"id": id_parcela},
+        text(CONSULTA_PARCELAS + "WHERE p.id_parcela = :id"), {"id": id_parcela}
     ).mappings().first()
-    if not fila:
-        return None
-    parcela = dict(fila)
-    for campo in ("latitud", "longitud", "area_ha", "tasa_mm_h", "potencia_bomba_kw", "horas_riego_habitual"):
-        if parcela[campo] is not None:
-            parcela[campo] = float(parcela[campo])  # SQL Server regresa Decimal
-    return parcela
+    return _parcela(fila) if fila else None
+
+
+def parcelas_de_usuario(conexion, id_usuario: int) -> list[dict]:
+    filas = conexion.execute(
+        text(CONSULTA_PARCELAS + "WHERE p.id_usuario = :u ORDER BY p.id_parcela"), {"u": id_usuario}
+    ).mappings().all()
+    return [_parcela(f) for f in filas]
+
+
+def _ids_cultivo_etapa(conexion, cultivo: str, etapa: str):
+    ids = conexion.execute(
+        text("SELECT c.id_cultivo, e.id_etapa FROM cultivos c JOIN etapas_cultivo e ON e.id_cultivo = c.id_cultivo "
+             "WHERE c.clave = :cultivo AND e.clave = :etapa"),
+        {"cultivo": cultivo, "etapa": etapa},
+    ).first()
+    if ids is None:
+        raise ValueError(f"No existe el cultivo '{cultivo}' con la etapa '{etapa}'.")
+    return ids
+
+
+def _valores_parcela(conexion, datos: dict) -> dict:
+    ids = _ids_cultivo_etapa(conexion, datos["cultivo"], datos["etapa"])
+    return {
+        "c": ids.id_cultivo, "e": ids.id_etapa, "nombre": datos["nombre"], "municipio": datos["municipio"],
+        "lat": datos.get("latitud"), "lon": datos.get("longitud"), "area": datos["area_ha"],
+        "sistema": datos["sistema"], "tasa": datos["tasa_mm_h"], "kw": datos["potencia_bomba_kw"],
+        "horas": datos["horas_riego_habitual"],
+    }
+
+
+def crear_parcela(conexion, id_usuario: int, datos: dict) -> dict:
+    valores = {**_valores_parcela(conexion, datos), "u": id_usuario}
+    conexion.execute(
+        text("INSERT INTO parcelas (id_usuario, id_cultivo, id_etapa, nombre, municipio, latitud, longitud, area_ha, "
+             "sistema, tasa_mm_h, potencia_bomba_kw, horas_riego_habitual) "
+             "VALUES (:u, :c, :e, :nombre, :municipio, :lat, :lon, :area, :sistema, :tasa, :kw, :horas)"),
+        valores,
+    )
+    id_parcela = conexion.execute(
+        text("SELECT MAX(id_parcela) FROM parcelas WHERE id_usuario = :u"), {"u": id_usuario}
+    ).scalar()
+    return obtener_parcela(conexion, id_parcela)
+
+
+def actualizar_parcela(conexion, id_parcela: int, datos: dict) -> dict:
+    valores = {**_valores_parcela(conexion, datos), "id": id_parcela}
+    conexion.execute(
+        text("UPDATE parcelas SET id_cultivo = :c, id_etapa = :e, nombre = :nombre, municipio = :municipio, "
+             "latitud = :lat, longitud = :lon, area_ha = :area, sistema = :sistema, tasa_mm_h = :tasa, "
+             "potencia_bomba_kw = :kw, horas_riego_habitual = :horas WHERE id_parcela = :id"),
+        valores,
+    )
+    return obtener_parcela(conexion, id_parcela)
+
+
+def parcela_de_recomendacion(conexion, id_recomendacion: int) -> int | None:
+    return conexion.execute(
+        text("SELECT id_parcela FROM recomendaciones_riego WHERE id_recomendacion = :id"), {"id": id_recomendacion}
+    ).scalar()
 
 
 def _guardar_clima(conexion, municipio: str, hoy: date, reporte: dict, et0: float) -> int:

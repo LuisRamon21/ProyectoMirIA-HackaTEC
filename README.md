@@ -49,7 +49,7 @@ Edita `.env`:
 
 - `SECRET_KEY`: genera una con `python -c "import secrets; print(secrets.token_hex(32))"`
 - `DB_SERVER`, `DB_USER`, `DB_PASSWORD` si tu SQL Server es distinto
-- `SMTP_USER` y `SMTP_PASSWORD` para enviar el código al crear cuentas en Comunidad
+- `SMTP_USER` y `SMTP_PASSWORD` para enviar el código al crear cuentas (Riego y Comunidad)
   (con Gmail, una *contraseña de aplicación*). Sin estos datos no se pueden crear cuentas nuevas.
 
 Crea la base de datos y carga el contenido de Capacitación:
@@ -63,14 +63,24 @@ python -m backend.seed_formularios --aprobar
 
 > `bawi_database.sql` **borra y vuelve a crear** la base `bawi`. Solo úsalo en una instalación nueva.
 
-Registra la parcela del productor (debe tener cuenta en Comunidad) y pon el id que muestra
-en `.env` como `RIEGO_ID_PARCELA`:
-
-```powershell
-python -m backend.registrar_parcela --usuario productor@correo.com --nombre "Huerta El Nogalito" --municipio Delicias --cultivo nogal --etapa media --area 10 --sistema goteo --tasa 3 --bomba-kw 45 --horas-habituales 4
-```
-
 Para comprobar la conexión a la base: `python -m backend.db`
+
+## Cuentas y suscripción de B.A.W.Í. Riego
+
+Riego es un servicio de pago y pide **iniciar sesión** con la misma cuenta de Comunidad.
+
+1. El productor crea su cuenta (en la app de Riego o en Comunidad) con su correo.
+2. Cuando paga, se activa su suscripción:
+
+   ```bash
+   python -m backend.suscripcion_riego --activar productor@correo.com
+   ```
+
+3. Entra a Riego, registra sus parcelas (cultivo, etapa, sistema de riego, bomba, horas de
+   riego habituales y, si quiere, la ubicación exacta) y recibe su recomendación diaria.
+   Cada productor solo ve sus propias parcelas, recomendaciones e historial.
+
+Otros comandos: `--lista` (cuentas con Riego activo) y `--desactivar <correo>`.
 
 ## Ejecutar
 
@@ -105,10 +115,11 @@ y los tres comandos son los mismos.
 ```
 apps/riego/app.py            App de Riego (Streamlit)
 apps/comunidad/app.py        App de Comunidad (Streamlit)
-backend/main.py              API (FastAPI): diagnóstico de riego, parcela, decisión e historial
-backend/routers/             Rutas de Comunidad y Capacitación
+backend/main.py              API (FastAPI)
+backend/routers/riego.py     Rutas de Riego: parcelas, diagnóstico, decisión e historial (con sesión)
+backend/routers/             Rutas de Comunidad y Capacitación (comunidad.py, capacitacion.py)
 backend/services/            Clima, FAO-56, lógica difusa, ahorro, catálogos, cuentas, correo, puntos
-backend/registrar_parcela.py Alta de la parcela de un productor
+backend/suscripcion_riego.py Activa o quita la suscripción de pago de Riego
 backend/seed_*.py            Carga del contenido de Capacitación
 database/bawi_database.sql   Esquema completo de la base de datos
 database/formularios.json    Formularios de Capacitación
