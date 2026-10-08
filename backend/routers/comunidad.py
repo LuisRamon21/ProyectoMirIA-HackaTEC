@@ -3,6 +3,8 @@ Rutas de B.A.W.I. Comunidad.
 
 C1 - Cuentas: crear cuenta, iniciar sesion y saber quien soy.
 C2 - Publicaciones: ver el feed (sin sesion) y publicar con foto o nota de voz (con sesion).
+C3 - Respuestas: ver una publicacion con sus respuestas y responder (con nota de voz y,
+     si el usuario usa B.A.W.I. Riego, con su dato de campo real).
 Para las rutas que piden sesion, la app manda la cabecera:
     Authorization: Bearer <token>
 """
@@ -201,3 +203,128 @@ async def publicar(
             {"u": yo["id_usuario"]},
         ).mappings().first()
     return publicacion_publica(fila)
+
+
+# ---------------------------------------------------------------------------
+# C3 - Respuestas
+# ---------------------------------------------------------------------------
+CONSULTA_RESPUESTAS = (
+    "SELECT c.id_comentario, c.texto, c.audio_ruta, c.creado_en, c.id_recomendacion, "
+    "u.id_usuario, u.nombre AS autor_nombre, u.municipio AS autor_municipio, "
+    "u.suscripcion_riego AS autor_riego, "
+    "r.fecha AS riego_fecha, r.etc_mm, r.horas_sugeridas, r.horas_aplicadas, r.estado AS riego_estado, "
+    "r.agua_ahorrada_m3, r.riesgo, cd.temp_max_c, cd.prob_lluvia_pct, cd.fuente, "
+    "cu.nombre AS cultivo, ec.nombre AS etapa, pa.municipio AS parcela_municipio "
+    "FROM comentarios c "
+    "JOIN usuarios u ON u.id_usuario = c.id_usuario "
+    "LEFT JOIN recomendaciones_riego r ON r.id_recomendacion = c.id_recomendacion "
+    "LEFT JOIN clima_diario cd ON cd.id_clima = r.id_clima "
+    "LEFT JOIN parcelas pa ON pa.id_parcela = r.id_parcela "
+    "LEFT JOIN cultivos cu ON cu.id_cultivo = pa.id_cultivo "
+    "LEFT JOIN etapas_cultivo ec ON ec.id_etapa = pa.id_etapa "
+)
+
+
+def _numero(valor):
+    return None if valor is None else float(valor)  # SQL Server regresa Decimal
+
+
+def respuesta_publica(fila) -> dict:
+    dato = None
+    if fila["id_recomendacion"] is not None:
+        dato = {
+            "fecha": fila["riego_fecha"].strftime("%Y-%m-%d"),
+            "cultivo": fila["cultivo"],
+            "etapa": fila["etapa"],
+            "municipio": fila["parcela_municipio"],
+            "temp_max_c": _numero(fila["temp_max_c"]),
+            "prob_lluvia_pct": fila["prob_lluvia_pct"],
+            "etc_mm": _numero(fila["etc_mm"]),
+            "horas_sugeridas": _numero(fila["horas_sugeridas"]),
+            "horas_aplicadas": _numero(fila["horas_aplicadas"]),
+            "estado": fila["riego_estado"],
+            "riesgo": fila["riesgo"],
+            "agua_ahorrada_m3": _numero(fila["agua_ahorrada_m3"]),
+            "clima_de_ejemplo": fila["fuente"] == "ejemplo",
+        }
+    return {
+        "id_respuesta": fila["id_comentario"],
+        "texto": fila["texto"],
+        "audio": fila["audio_ruta"],
+        "creada_en": fila["creado_en"].strftime("%Y-%m-%d %H:%M"),
+        "autor": {
+            "id_usuario": fila["id_usuario"],
+            "nombre": fila["autor_nombre"],
+            "municipio": fila["autor_municipio"],
+            "usa_riego": bool(fila["autor_riego"]),
+        },
+        "dato_riego": dato,
+    }
+
+
+@router.get("/publicaciones/{id_publicacion}")
+def ver_publicacion(id_publicacion: int):
+    """La publicacion con todas sus respuestas, de la mas antigua a la mas nueva. Sin sesion."""
+    with engine.connect() as conexion:
+        pub = conexion.execute(
+            text(CONSULTA_PUBLICACIONES + " WHERE p.id_publicacion = :id"), {"id": id_publicacion}
+        ).mappings().first()
+        if not pub:
+            raise HTTPException(status_code=404, detail="La publicación no existe.")
+        respuestas = conexion.execute(
+            text(CONSULTA_RESPUESTAS + "WHERE c.id_publicacion = :id ORDER BY c.creado_en, c.id_comentario"),
+            {"id": id_publicacion},
+        ).mappings().all()
+    return {**publicacion_publica(pub), "respuestas": [respuesta_publica(r) for r in respuestas]}
+
+
+@router.post("/publicaciones/{id_publicacion}/respuestas")
+async def responder(
+    id_publicacion: int,
+    texto: str = Form(..., min_length=2),
+    audio: UploadFile | None = File(None),
+    adjuntar_riego: bool = Form(False),
+    authorization: str | None = Header(None),
+):
+    yo = usuario_actual(authorization)
+    with engine.connect() as conexion:
+        existe = conexion.execute(
+            text("SELECT COUNT(*) FROM publicaciones WHERE id_publicacion = :id"), {"id": id_publicacion}
+        ).scalar()
+        if not existe:
+            raise HTTPException(status_code=404, detail="La publicación no existe.")
+
+        id_recomendacion = None
+        if adjuntar_riego:
+            if not yo["usa_riego"]:
+                raise HTTPException(status_code=403,
+                                    detail="Solo los usuarios de B.A.W.I. Riego pueden adjuntar su dato de campo.")
+            # La recomendacion mas reciente de cualquiera de sus parcelas
+            id_recomendacion = conexion.execute(
+                text(
+                    "SELECT r.id_recomendacion FROM recomendaciones_riego r "
+                    "JOIN parcelas p ON p.id_parcela = r.id_parcela "
+                    "WHERE p.id_usuario = :u ORDER BY r.fecha DESC, r.id_recomendacion DESC"
+                ),
+                {"u": yo["id_usuario"]},
+            ).scalar()
+            if id_recomendacion is None:
+                raise HTTPException(status_code=400,
+                                    detail="Aún no tienes recomendaciones en B.A.W.I. Riego para compartir.")
+
+    audio_ruta = await guardar_archivo(audio, EXT_AUDIO, "audios")
+    with engine.begin() as conexion:
+        conexion.execute(
+            text(
+                "INSERT INTO comentarios (id_publicacion, id_usuario, texto, audio_ruta, id_recomendacion) "
+                "VALUES (:p, :u, :texto, :audio, :rec)"
+            ),
+            {"p": id_publicacion, "u": yo["id_usuario"], "texto": texto.strip(),
+             "audio": audio_ruta, "rec": id_recomendacion},
+        )
+        fila = conexion.execute(
+            text(CONSULTA_RESPUESTAS + "WHERE c.id_publicacion = :p AND c.id_usuario = :u "
+                 "ORDER BY c.id_comentario DESC"),
+            {"p": id_publicacion, "u": yo["id_usuario"]},
+        ).mappings().first()
+    return respuesta_publica(fila)
