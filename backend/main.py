@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 # Importamos el Orquestador que ya validamos
-from orquestador import generar_diagnostico_riego
+from backend.services.orquestador import generar_diagnostico_riego
 
 # 1. Inicializar la aplicación FastAPI
 app = FastAPI(
@@ -47,6 +47,8 @@ async def obtener_diagnostico(solicitud: SolicitudRiego):
             raise HTTPException(status_code=503, detail=reporte["mensaje"])
             
         return reporte
+    except HTTPException:
+        raise
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error interno del servidor: {str(e)}")
