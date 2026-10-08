@@ -3,9 +3,14 @@ import logging
 from dotenv import load_dotenv
 
 
+
 from clima import obtener_clima_actual
 from backend.services.fao56_calc import calcular_et0_diaria
 from motor_difuso import evaluar_riesgo_cultivo 
+from backend.services.clima import obtener_clima_actual
+from backend.services.fao56_calc import calcular_et0_diaria
+from backend.services.motor_difuso import evaluar_riesgo_cultivo
+
 
 load_dotenv()
 
