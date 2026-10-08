@@ -2,10 +2,19 @@ import os
 import logging
 from dotenv import load_dotenv
 
+
+
+from clima import obtener_clima_actual
+from backend.services.fao56_calc import calcular_et0_diaria
+from motor_difuso import evaluar_riesgo_cultivo 
+from backend.services.clima import obtener_clima_actual
+
 from backend.services.clima import obtener_clima_actual, obtener_pronostico_24h
+
 from backend.services.fao56_calc import calcular_et0_diaria
 from backend.services.motor_difuso import evaluar_riesgo_cultivo, calcular_factor_riego
 from backend.services.ahorro import calcular_ahorro
+
 
 load_dotenv()
 
@@ -44,6 +53,15 @@ def generar_diagnostico_riego(
     la conversion a horas de riego y el ahorro.
     Retorna un diccionario (JSON-ready) para la API de B.A.W.I. Riego.
     """
+
+    api_key = os.getenv("4091a6428ea7b37a61cf45759f155481")
+    clima = obtener_clima_actual(api_key, ciudad)
+    
+    if not clima:
+        return {"error": True, "mensaje": "Fallo al conectar con el servicio meteorológico."}
+    
+    # 1. Matemática (Diagnóstico puro)
+
     if modo_demo:
         clima, pronostico = dict(CLIMA_DEMO), dict(PRONOSTICO_DEMO)
     else:
@@ -65,6 +83,7 @@ def generar_diagnostico_riego(
         }
 
     # 1. Matematica FAO-56
+
     et0 = calcular_et0_diaria(
         temperatura_c=clima["temperatura_c"],
         humedad_pct=clima["humedad_pct"],
@@ -121,6 +140,10 @@ def generar_diagnostico_riego(
 
 
 if __name__ == "__main__":
+
+    print("Generando diagnóstico para B.A.W.Í. Riego...\n")
+    reporte = generar_diagnostico_riego("Chihuahua,MX", "manzana", "desarrollo")
+
     import json
     print("Generando diagnostico para B.A.W.I. Riego...\n")
     reporte = generar_diagnostico_riego("Cuauhtemoc,MX", "manzana", "desarrollo")
