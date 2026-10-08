@@ -1,12 +1,13 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 # Importamos el Orquestador que ya validamos
 from backend.services.orquestador import generar_diagnostico_riego
 from backend.db import engine
 from backend.services import registro_riego
-
+from backend.routers.comunidad import MEDIA_DIR, router as comunidad_router
 # 1. Inicializar la aplicación FastAPI
 app = FastAPI(
     title="API B.A.W.Í. Backend",
@@ -22,6 +23,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# Rutas de B.A.W.I. Comunidad (backend/routers/comunidad.py)
+app.include_router(comunidad_router)
+
+
+# Fotos y notas de voz de Comunidad: se sirven en /media/...
+MEDIA_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/media", StaticFiles(directory=MEDIA_DIR), name="media")
 
 class SolicitudRiego(BaseModel):
     ciudad: str
