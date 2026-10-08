@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 # Importamos el Orquestador que ya validamos
-from orquestador import generar_diagnostico_riego
+from backend.services.orquestador import generar_diagnostico_riego
 
 # 1. Inicializar la aplicación FastAPI
 app = FastAPI(
@@ -11,7 +11,6 @@ app = FastAPI(
     description="Motor de cálculo y lógica difusa para ecosistema de capacitación agrícola",
     version="1.0"
 )
-
 
 app.add_middleware(
     CORSMiddleware,

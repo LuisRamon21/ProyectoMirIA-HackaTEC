@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 
 from clima import obtener_clima_actual
-from fao56_calc import calcular_et0_diaria
+from backend.services.fao56_calc import calcular_et0_diaria
 from motor_difuso import evaluar_riesgo_cultivo 
 
 load_dotenv()
@@ -28,7 +28,7 @@ def generar_diagnostico_riego(ciudad: str, cultivo: str, etapa_actual: str) -> d
     Orquesta la recolección de datos, el cálculo FAO-56 y el diagnóstico difuso.
     Retorna un diccionario (JSON-ready) para la API de B.A.W.Í. Riego.
     """
-    api_key = os.getenv("OPENWEATHER_API_KEY")
+    api_key = os.getenv("4091a6428ea7b37a61cf45759f155481")
     clima = obtener_clima_actual(api_key, ciudad)
     
     if not clima:
@@ -69,6 +69,6 @@ def generar_diagnostico_riego(ciudad: str, cultivo: str, etapa_actual: str) -> d
 
 if __name__ == "__main__":
     print("Generando diagnóstico para B.A.W.Í. Riego...\n")
-    reporte = generar_diagnostico_riego("Cuauhtemoc,MX", "manzana", "desarrollo")
+    reporte = generar_diagnostico_riego("Chihuahua,MX", "manzana", "desarrollo")
     import json
     print(json.dumps(reporte, indent=2, ensure_ascii=False))
