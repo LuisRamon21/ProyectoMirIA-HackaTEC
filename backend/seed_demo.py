@@ -16,11 +16,12 @@ from backend.services.cuentas import hashear_password
 
 PASSWORD_DEMO = "bawi2026"
 
-# usuario, nombre, municipio, rol, suscripcion_riego, comparte_datos
+# usuario, nombre, municipio, rol, suscripcion_riego, comparte_datos, puntos
+# Rangos: don_ramiro Maestro (usa Riego) · tecnico_beto Especialista (650) · sofia_campo Aprendiz (130)
 USUARIOS = [
-    ("don_ramiro", "Ramiro Chávez", "Delicias", "productor", 1, 1),
-    ("tecnico_beto", "Alberto Meza", "Camargo", "tecnico", 0, 0),
-    ("sofia_campo", "Sofía Licón", "Delicias", "productor", 0, 0),
+    ("don_ramiro", "Ramiro Chávez", "Delicias", "productor", 1, 1, 0),
+    ("tecnico_beto", "Alberto Meza", "Camargo", "tecnico", 0, 0, 650),
+    ("sofia_campo", "Sofía Licón", "Delicias", "productor", 0, 0, 130),
 ]
 
 # Parcela del productor de Riego (mismos datos por defecto que la app de Riego)
@@ -46,18 +47,18 @@ def id_de_usuario(conexion, usuario: str):
 
 def cargar() -> None:
     with engine.begin() as conexion:  # begin() hace commit al final, o deshace todo si algo falla
-        for usuario, nombre, municipio, rol, riego, comparte in USUARIOS:
+        for usuario, nombre, municipio, rol, riego, comparte, puntos in USUARIOS:
             if id_de_usuario(conexion, usuario):
                 print(f"  ya existe: {usuario}")
                 continue
             conexion.execute(
                 text(
                     "INSERT INTO usuarios (nombre, usuario, password_hash, municipio, rol, "
-                    "suscripcion_riego, comparte_datos) "
-                    "VALUES (:nombre, :usuario, :hash, :municipio, :rol, :riego, :comparte)"
+                    "suscripcion_riego, comparte_datos, puntos) "
+                    "VALUES (:nombre, :usuario, :hash, :municipio, :rol, :riego, :comparte, :puntos)"
                 ),
                 {"nombre": nombre, "usuario": usuario, "hash": hashear_password(PASSWORD_DEMO),
-                 "municipio": municipio, "rol": rol, "riego": riego, "comparte": comparte},
+                 "municipio": municipio, "rol": rol, "riego": riego, "comparte": comparte, "puntos": puntos},
             )
             print(f"  usuario creado: {usuario}")
 

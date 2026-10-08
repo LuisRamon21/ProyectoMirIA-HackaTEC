@@ -220,6 +220,17 @@ CREATE TABLE intentos_quiz (
     FOREIGN KEY (id_quiz) REFERENCES quizzes(id_quiz)
 );
 
+-- Likes de publicaciones (no dan puntos; ordenan "Tendencias")
+CREATE TABLE likes_publicacion (
+    id_like INT PRIMARY KEY IDENTITY(1,1),
+    id_publicacion INT NOT NULL,
+    id_usuario INT NOT NULL,
+    creado_en DATETIME DEFAULT GETDATE(),
+    CONSTRAINT uq_like_publicacion UNIQUE (id_publicacion, id_usuario),
+    FOREIGN KEY (id_publicacion) REFERENCES publicaciones(id_publicacion) ON DELETE CASCADE,
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
+);
+
 CREATE TABLE votos_comentario (
     id_voto INT PRIMARY KEY IDENTITY(1,1),
     id_comentario INT NOT NULL,
