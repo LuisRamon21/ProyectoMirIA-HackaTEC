@@ -16,7 +16,7 @@ M3_POR_MM_HA = 10.0
 
 
 def precio_kwh_9cu() -> float:
-    return float(os.getenv("TARIFA_9CU_MXN_KWH", "0.75"))
+    return float(os.getenv("TARIFA_9CU_MXN_KWH", "0.76"))
 
 
 def calcular_ahorro(
