@@ -41,10 +41,16 @@ RAZONES_RECHAZO = ["Cosecha en curso", "Suelo saturado por lluvia", "Falla en el
 COLOR_RIESGO = {"BAJO": "green", "MODERADO": "orange", "CRÍTICO": "red"}
 
 
+@st.cache_resource
+def sesion_http() -> requests.Session:
+    """Una sola conexion reutilizable hacia la API (keep-alive): cada clic es mas rapido."""
+    return requests.Session()
+
+
 def llamar_api(metodo: str, ruta: str, **kwargs) -> dict | list:
     """Llama al backend. Devuelve la respuesta o {'error': True, 'mensaje': ...}."""
     try:
-        resp = requests.request(metodo, f"{API_URL}{ruta}", timeout=15, **kwargs)
+        resp = sesion_http().request(metodo, f"{API_URL}{ruta}", timeout=15, **kwargs)
     except requests.exceptions.RequestException:
         return {"error": True, "mensaje": f"No se pudo conectar con el backend en {API_URL}. ¿Está corriendo la API?"}
     if resp.status_code != 200:
@@ -79,6 +85,7 @@ def registrar_decision(decision: str, horas: float, motivo: str = "") -> None:
             st.error(respuesta["mensaje"])
             return
         st.session_state.ultima_decision = respuesta
+        st.session_state.historial_bd = None  # se vuelve a leer con la decision nueva
     else:
         st.session_state.historial.append({
             "fecha": datetime.now().strftime("%Y-%m-%d %H:%M"), "estado": decision,
@@ -111,34 +118,37 @@ with st.sidebar:
     else:
         st.warning("No se pudo cargar tu parcela de la base de datos. Llena los datos a mano.")
 
-    st.header("Tu parcela")
-    ciudad_txt = st.selectbox("Región", list(CIUDADES), index=indice_de(CIUDADES, f"{p.get('municipio')},MX"))
-    cultivo_txt = st.selectbox("Cultivo", list(CULTIVOS), index=indice_de(CULTIVOS, p.get("cultivo")))
-    etapa_txt = st.selectbox("Etapa del cultivo", list(ETAPAS), index=indice_de(ETAPAS, p.get("etapa")))
+    # Formulario: mover un numero no recarga la pagina; todo se aplica al presionar "Calcular"
+    with st.form("form_parcela", border=False):
+        st.header("Tu parcela")
+        ciudad_txt = st.selectbox("Región", list(CIUDADES), index=indice_de(CIUDADES, f"{p.get('municipio')},MX"))
+        cultivo_txt = st.selectbox("Cultivo", list(CULTIVOS), index=indice_de(CULTIVOS, p.get("cultivo")))
+        etapa_txt = st.selectbox("Etapa del cultivo", list(ETAPAS), index=indice_de(ETAPAS, p.get("etapa")))
 
-    st.header("Tu sistema de riego")
-    tasa_mm_h = st.number_input(
-        "Tasa de aplicación (mm/h)", min_value=0.5, max_value=20.0, value=float(p.get("tasa_mm_h", 3.0)), step=0.5,
-        help="Cuántos milímetros de agua aplica tu goteo o microaspersión en una hora.",
-    )
-    superficie_ha = st.number_input("Superficie que riegas (ha)", min_value=0.5, max_value=500.0,
-                                    value=float(p.get("area_ha", 10.0)), step=0.5)
-    potencia_kw = st.number_input(
-        "Potencia de la bomba (kW)", min_value=1.0, max_value=300.0, value=float(p.get("potencia_bomba_kw", 45.0)),
-        step=1.0, help="Viene en la placa del motor. 1 HP ≈ 0.75 kW.",
-    )
-    horas_habituales = st.number_input(
-        "Horas que riegas normalmente al día", min_value=0.0, max_value=24.0,
-        value=float(p.get("horas_riego_habitual", 4.0)), step=0.5,
-        help="Con esto calculamos cuánto ahorras siguiendo la recomendación.",
-    )
+        st.header("Tu sistema de riego")
+        tasa_mm_h = st.number_input(
+            "Tasa de aplicación (mm/h)", min_value=0.5, max_value=20.0, value=float(p.get("tasa_mm_h", 3.0)), step=0.5,
+            help="Cuántos milímetros de agua aplica tu goteo o microaspersión en una hora.",
+        )
+        superficie_ha = st.number_input("Superficie que riegas (ha)", min_value=0.5, max_value=500.0,
+                                        value=float(p.get("area_ha", 10.0)), step=0.5)
+        potencia_kw = st.number_input(
+            "Potencia de la bomba (kW)", min_value=1.0, max_value=300.0, value=float(p.get("potencia_bomba_kw", 45.0)),
+            step=1.0, help="Viene en la placa del motor. 1 HP ≈ 0.75 kW.",
+        )
+        horas_habituales = st.number_input(
+            "Horas que riegas normalmente al día", min_value=0.0, max_value=24.0,
+            value=float(p.get("horas_riego_habitual", 4.0)), step=0.5,
+            help="Con esto calculamos cuánto ahorras siguiendo la recomendación.",
+        )
 
-    modo_demo = st.toggle("Modo demostración (sin internet)", value=False,
-                          help="Usa un clima de ejemplo. El backend debe estar corriendo.")
-    calcular = st.button("Calcular recomendación", type="primary", width="stretch")
+        modo_demo = st.toggle("Modo demostración (sin internet)", value=False,
+                              help="Usa un clima de ejemplo. El backend debe estar corriendo.")
+        calcular = st.form_submit_button("Calcular recomendación", type="primary", width="stretch")
 
 if calcular:
     st.session_state.ultima_decision = None
+    st.session_state.historial_bd = None
     with st.spinner("Consultando el clima y calculando..."):
         st.session_state.reporte = llamar_api("POST", "/api/diagnostico", json={
             "ciudad": CIUDADES[ciudad_txt],
@@ -280,9 +290,11 @@ if decision:
 
 # --- Historial (base de datos) ------------------------------------------------
 ESTADOS = {"aceptada": "✔ Aceptada", "ajustada": "✏ Ajustada", "rechazada": "✖ Rechazada", "pendiente": "⏳ Pendiente"}
-historial = llamar_api("GET", f"/api/riego/historial/{parcela['id_parcela']}") if parcela else []
-if es_error(historial):
-    historial = []
+# El historial se pide una vez y se vuelve a pedir solo despues de calcular o decidir
+if st.session_state.get("historial_bd") is None and parcela:
+    respuesta = llamar_api("GET", f"/api/riego/historial/{parcela['id_parcela']}")
+    st.session_state.historial_bd = [] if es_error(respuesta) else respuesta
+historial = st.session_state.get("historial_bd") or []
 filas = [
     {"Fecha": h["fecha"], "Sugeridas (h)": h["horas_sugeridas"], "Decisión": ESTADOS.get(h["estado"], h["estado"]),
      "Aplicadas (h)": h["horas_aplicadas"], "Motivo": h["motivo"] or "", "Agua ahorrada (m³)": h["agua_ahorrada_m3"],

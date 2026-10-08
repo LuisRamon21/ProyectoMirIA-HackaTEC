@@ -11,17 +11,21 @@ D2 - Rangos y puntos: solo Especialista Agronomo y Maestro de la Tierra responde
 Para las rutas que piden sesion, la app manda la cabecera:
     Authorization: Bearer <token>
 """
+import hmac
 import os
 import re
 import uuid
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from fastapi import APIRouter, File, Form, Header, HTTPException, UploadFile
 from pydantic import BaseModel, Field
-from sqlalchemy import text
+from sqlalchemy import bindparam, text
 
 from backend.db import engine
-from backend.services.cuentas import crear_token, hashear_password, leer_token, verificar_password
+from backend.services.correo import correo_configurado, enviar_codigo
+from backend.services.cuentas import (crear_token, generar_codigo, hash_codigo, hashear_password, leer_token,
+                                      verificar_password)
 from backend.services import puntos as reglas
 
 router = APIRouter(prefix="/api/comunidad", tags=["Comunidad"])
@@ -119,25 +123,125 @@ def _usuario_desde_correo(conexion, correo: str) -> str:
     return candidato
 
 
-@router.post("/registro")
-def registrar(datos: Registro):
-    """Toda cuenta nueva empieza como Aprendiz del Campo: el rango no se elige."""
+# ---------------------------------------------------------------------------
+# Crear cuenta en dos pasos: 1) datos -> se envia un codigo al correo; 2) codigo -> se crea la cuenta
+# ---------------------------------------------------------------------------
+MINUTOS_CODIGO = 10
+SEGUNDOS_PARA_REENVIAR = 60
+MAX_INTENTOS_CODIGO = 5
+
+
+class Verificacion(BaseModel):
+    correo: str
+    codigo: str = Field(min_length=6, max_length=6)
+
+
+class Reenvio(BaseModel):
+    correo: str
+
+
+def _enviar_codigo(correo: str, nombre: str, codigo: str) -> None:
+    try:
+        enviar_codigo(correo, nombre, codigo, MINUTOS_CODIGO)
+    except RuntimeError:
+        raise HTTPException(status_code=502, detail="No pudimos enviar el correo. Revisa que esté bien escrito "
+                                                    "o intenta de nuevo en un momento.")
+
+
+def _momentos() -> dict:
+    ahora = datetime.now().replace(microsecond=0)
+    return {"ahora": ahora, "expira": ahora + timedelta(minutes=MINUTOS_CODIGO),
+            "limite_reenvio": ahora - timedelta(seconds=SEGUNDOS_PARA_REENVIAR)}
+
+
+@router.post("/registro/solicitar")
+def solicitar_registro(datos: Registro):
+    """Paso 1: guarda los datos como registro pendiente y envia un codigo de 6 numeros al correo."""
     if datos.password != datos.confirmacion:
         raise HTTPException(status_code=400, detail="Las contraseñas no coinciden.")
     correo = datos.correo.strip().lower()
-    with engine.begin() as conexion:
+    codigo, t = generar_codigo(), _momentos()
+    with engine.begin() as conexion:  # si el correo no sale, no queda nada guardado
         if buscar_usuario(conexion, correo=correo):
             raise HTTPException(status_code=409, detail="Ya existe una cuenta con ese correo. Inicia sesión.")
-        usuario = _usuario_desde_correo(conexion, correo)
+        if conexion.execute(text("SELECT COUNT(*) FROM registros_pendientes WHERE correo = :c AND enviado_en > :l"),
+                            {"c": correo, "l": t["limite_reenvio"]}).scalar():
+            raise HTTPException(status_code=429, detail="Ya te enviamos un código hace menos de un minuto. "
+                                                        "Revisa tu correo (también la carpeta de spam).")
+        conexion.execute(text("DELETE FROM registros_pendientes WHERE correo = :c"), {"c": correo})
         conexion.execute(
-            text(
-                "INSERT INTO usuarios (nombre, usuario, correo, password_hash, municipio) "
-                "VALUES (:nombre, :usuario, :correo, :hash, :municipio)"
-            ),
-            {"nombre": datos.nombre.strip(), "usuario": usuario, "correo": correo,
-             "hash": hashear_password(datos.password), "municipio": datos.municipio.strip()},
+            text("INSERT INTO registros_pendientes (correo, nombre, municipio, password_hash, codigo_hash, "
+                 "intentos, enviado_en, expira_en) VALUES (:c, :n, :m, :p, :h, 0, :ahora, :expira)"),
+            {"c": correo, "n": datos.nombre.strip(), "m": datos.municipio.strip(),
+             "p": hashear_password(datos.password), "h": hash_codigo(correo, codigo),
+             "ahora": t["ahora"], "expira": t["expira"]},
         )
-        fila = buscar_usuario(conexion, correo=correo)
+        _enviar_codigo(correo, datos.nombre.strip(), codigo)
+    return {"correo": correo, "minutos": MINUTOS_CODIGO, "modo_prueba": not correo_configurado()}
+
+
+@router.post("/registro/reenviar")
+def reenviar_codigo(datos: Reenvio):
+    """Manda un codigo nuevo al mismo registro pendiente (el anterior deja de servir)."""
+    correo = datos.correo.strip().lower()
+    codigo, t = generar_codigo(), _momentos()
+    with engine.begin() as conexion:
+        pendiente = conexion.execute(
+            text("SELECT nombre, CASE WHEN enviado_en > :l THEN 1 ELSE 0 END AS reciente "
+                 "FROM registros_pendientes WHERE correo = :c"),
+            {"c": correo, "l": t["limite_reenvio"]},
+        ).mappings().first()
+        if not pendiente:
+            raise HTTPException(status_code=404, detail="No hay una cuenta esperando verificación con ese correo.")
+        if pendiente["reciente"]:
+            raise HTTPException(status_code=429, detail="Espera un minuto antes de pedir otro código.")
+        conexion.execute(
+            text("UPDATE registros_pendientes SET codigo_hash = :h, intentos = 0, enviado_en = :ahora, "
+                 "expira_en = :expira WHERE correo = :c"),
+            {"h": hash_codigo(correo, codigo), "ahora": t["ahora"], "expira": t["expira"], "c": correo},
+        )
+        _enviar_codigo(correo, pendiente["nombre"], codigo)
+    return {"correo": correo, "minutos": MINUTOS_CODIGO, "modo_prueba": not correo_configurado()}
+
+
+@router.post("/registro/verificar")
+def verificar_registro(datos: Verificacion):
+    """Paso 2: si el codigo es correcto, crea la cuenta (Aprendiz del Campo) e inicia sesion."""
+    correo = datos.correo.strip().lower()
+    t = _momentos()
+    error, fila = None, None
+    with engine.begin() as conexion:
+        pendiente = conexion.execute(
+            text("SELECT nombre, municipio, password_hash, codigo_hash, intentos, "
+                 "CASE WHEN expira_en >= :ahora THEN 1 ELSE 0 END AS vigente "
+                 "FROM registros_pendientes WHERE correo = :c"),
+            {"c": correo, "ahora": t["ahora"]},
+        ).mappings().first()
+        if not pendiente:
+            raise HTTPException(status_code=404, detail="No hay una cuenta esperando verificación con ese correo.")
+        if not pendiente["vigente"]:
+            raise HTTPException(status_code=410, detail="El código ya venció. Pide uno nuevo.")
+        if pendiente["intentos"] >= MAX_INTENTOS_CODIGO:
+            raise HTTPException(status_code=429, detail="Demasiados intentos. Pide un código nuevo.")
+        if not hmac.compare_digest(hash_codigo(correo, datos.codigo.strip()), pendiente["codigo_hash"]):
+            conexion.execute(text("UPDATE registros_pendientes SET intentos = intentos + 1 WHERE correo = :c"),
+                             {"c": correo})
+            restantes = MAX_INTENTOS_CODIGO - pendiente["intentos"] - 1
+            error = (f"Código incorrecto. Te quedan {restantes} intento(s)." if restantes
+                     else "Código incorrecto. Pide un código nuevo.")
+        elif buscar_usuario(conexion, correo=correo):
+            raise HTTPException(status_code=409, detail="Ya existe una cuenta con ese correo. Inicia sesión.")
+        else:
+            conexion.execute(
+                text("INSERT INTO usuarios (nombre, usuario, correo, password_hash, municipio) "
+                     "VALUES (:nombre, :usuario, :correo, :hash, :municipio)"),
+                {"nombre": pendiente["nombre"], "usuario": _usuario_desde_correo(conexion, correo),
+                 "correo": correo, "hash": pendiente["password_hash"], "municipio": pendiente["municipio"]},
+            )
+            conexion.execute(text("DELETE FROM registros_pendientes WHERE correo = :c"), {"c": correo})
+            fila = buscar_usuario(conexion, correo=correo)
+    if error:  # fuera del "with" para que si se guarde el intento fallido
+        raise HTTPException(status_code=400, detail=error)
     return {"token": crear_token(fila["id_usuario"]), "usuario": usuario_publico(fila)}
 
 
@@ -221,6 +325,7 @@ def publicacion_publica(fila) -> dict:
         "imagen": fila["imagen_ruta"],
         "audio": fila["audio_ruta"],
         "creada_en": fila["creada_en"].strftime("%Y-%m-%d %H:%M"),
+        "editada": fila["editada_en"] is not None,
         "num_respuestas": fila["num_respuestas"],
         "likes": fila["likes"],
         "yo_di_like": bool(fila["yo_like"]),
@@ -229,7 +334,7 @@ def publicacion_publica(fila) -> dict:
 
 
 CONSULTA_PUBLICACIONES = (
-    "SELECT p.id_publicacion, p.titulo, p.texto, p.categoria, p.imagen_ruta, p.audio_ruta, p.creada_en, "
+    "SELECT p.id_publicacion, p.titulo, p.texto, p.categoria, p.imagen_ruta, p.audio_ruta, p.creada_en, p.editada_en, "
     "u.id_usuario, u.nombre AS autor_nombre, u.municipio AS autor_municipio, "
     "u.suscripcion_riego AS autor_riego, u.puntos AS autor_puntos, "
     "(SELECT COUNT(*) FROM comentarios c WHERE c.id_publicacion = p.id_publicacion) AS num_respuestas, "
@@ -242,8 +347,8 @@ CONSULTA_PUBLICACIONES = (
 
 @router.get("/publicaciones")
 def listar_publicaciones(categoria: str | None = None, orden: str = "recientes", buscar: str | None = None,
-                         authorization: str | None = Header(None)):
-    """Feed. orden = recientes (por fecha) o likes (Tendencias). Se puede ver sin iniciar sesion."""
+                         con_respuestas: bool = False, authorization: str | None = Header(None)):
+    """Feed. orden = recientes o likes. Con con_respuestas=true incluye las respuestas de cada publicacion."""
     condiciones, valores = [], {"visitante": id_visitante(authorization)}
     if categoria:
         condiciones.append("p.categoria = :categoria")
@@ -259,8 +364,18 @@ def listar_publicaciones(categoria: str | None = None, orden: str = "recientes",
     else:
         consulta += " ORDER BY p.creada_en DESC, p.id_publicacion DESC"
     with engine.connect() as conexion:
-        filas = conexion.execute(text(consulta), valores).mappings().all()
-    return [publicacion_publica(f) for f in filas]
+        publicaciones = [publicacion_publica(f) for f in conexion.execute(text(consulta), valores).mappings().all()]
+        if con_respuestas and publicaciones:
+            ids = [p["id_publicacion"] for p in publicaciones]
+            consulta_resp = text(
+                CONSULTA_RESPUESTAS + "WHERE c.id_publicacion IN :ids ORDER BY c.creado_en, c.id_comentario"
+            ).bindparams(bindparam("ids", expanding=True))
+            por_publicacion = {i: [] for i in ids}
+            for fila in conexion.execute(consulta_resp, {"ids": ids, "visitante": valores["visitante"]}).mappings():
+                por_publicacion[fila["id_publicacion"]].append(respuesta_publica(fila))
+            for p in publicaciones:
+                p["respuestas"] = por_publicacion[p["id_publicacion"]]
+    return publicaciones
 
 
 @router.post("/publicaciones")
@@ -317,11 +432,63 @@ def like_publicacion(id_publicacion: int, authorization: str | None = Header(Non
     return {"likes": likes, "yo_di_like": not ya}
 
 
+class EdicionPublicacion(BaseModel):
+    titulo: str = Field(min_length=3, max_length=150)
+    texto: str = Field(min_length=3)
+    categoria: str
+
+
+def _mi_publicacion(conexion, id_publicacion: int, yo: dict) -> None:
+    """Revisa que la publicacion exista y sea de quien la quiere cambiar."""
+    autor = conexion.execute(text("SELECT id_usuario FROM publicaciones WHERE id_publicacion = :p"),
+                             {"p": id_publicacion}).scalar()
+    if autor is None:
+        raise HTTPException(status_code=404, detail="La publicación no existe.")
+    if autor != yo["id_usuario"]:
+        raise HTTPException(status_code=403, detail="Solo quien la publicó puede editarla o eliminarla.")
+
+
+@router.put("/publicaciones/{id_publicacion}")
+def editar_publicacion(id_publicacion: int, datos: EdicionPublicacion, authorization: str | None = Header(None)):
+    """Cambia titulo, texto y tema. La foto y la nota de voz se quedan igual."""
+    yo = usuario_actual(authorization)
+    if datos.categoria not in CATEGORIAS:
+        raise HTTPException(status_code=400, detail=f"Categoría no válida. Usa: {', '.join(CATEGORIAS)}")
+    with engine.begin() as conexion:
+        _mi_publicacion(conexion, id_publicacion, yo)
+        conexion.execute(
+            text("UPDATE publicaciones SET titulo = :t, texto = :x, categoria = :c, editada_en = :ahora "
+                 "WHERE id_publicacion = :p"),
+            {"t": datos.titulo.strip(), "x": datos.texto.strip(), "c": datos.categoria,
+             "ahora": datetime.now().replace(microsecond=0), "p": id_publicacion},
+        )
+    return {"ok": True}
+
+
+@router.delete("/publicaciones/{id_publicacion}")
+def eliminar_publicacion(id_publicacion: int, authorization: str | None = Header(None)):
+    """Borra la publicacion con sus respuestas y likes (la base los borra en cascada) y sus archivos.
+    Los puntos que ya se ganaron con ella se conservan en el historial."""
+    yo = usuario_actual(authorization)
+    with engine.begin() as conexion:
+        _mi_publicacion(conexion, id_publicacion, yo)
+        archivos = [r for (r,) in conexion.execute(
+            text("SELECT imagen_ruta FROM publicaciones WHERE id_publicacion = :p UNION ALL "
+                 "SELECT audio_ruta FROM publicaciones WHERE id_publicacion = :p UNION ALL "
+                 "SELECT audio_ruta FROM comentarios WHERE id_publicacion = :p"),
+            {"p": id_publicacion},
+        ) if r]
+        conexion.execute(text("DELETE FROM publicaciones WHERE id_publicacion = :p"), {"p": id_publicacion})
+    for ruta in archivos:
+        (MEDIA_DIR / ruta.removeprefix("/media/")).unlink(missing_ok=True)
+    return {"ok": True}
+
+
 # ---------------------------------------------------------------------------
 # C3 - Respuestas
 # ---------------------------------------------------------------------------
 CONSULTA_RESPUESTAS = (
-    "SELECT c.id_comentario, c.texto, c.audio_ruta, c.creado_en, c.id_recomendacion, "
+    "SELECT c.id_comentario, c.id_publicacion, c.texto, c.audio_ruta, c.creado_en, c.id_recomendacion, "
     "u.id_usuario, u.nombre AS autor_nombre, u.municipio AS autor_municipio, "
     "u.suscripcion_riego AS autor_riego, u.puntos AS autor_puntos, "
     "(SELECT COUNT(*) FROM votos_comentario v WHERE v.id_comentario = c.id_comentario) AS likes, "

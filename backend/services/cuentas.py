@@ -51,3 +51,13 @@ def leer_token(token: str) -> int | None:
     except (ValueError, AttributeError):
         return None
     return id_usuario if hmac.compare_digest(firma, _firma(id_usuario)) else None
+
+# ---------------------------------------------------------------------------
+# Verificacion del correo: codigo de 6 numeros. Se guarda solo su "hash".
+# ---------------------------------------------------------------------------
+def generar_codigo() -> str:
+    return f"{secrets.randbelow(1_000_000):06d}"
+
+
+def hash_codigo(correo: str, codigo: str) -> str:
+    return hmac.new(SECRET_KEY.encode(), f"{correo}:{codigo}".encode(), hashlib.sha256).hexdigest()

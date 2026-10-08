@@ -13,6 +13,7 @@ Ejecutar desde la raiz del proyecto (con la API corriendo):
 """
 import html
 import os
+from datetime import datetime
 
 import requests
 import streamlit as st
@@ -60,6 +61,8 @@ CSS = """
   --verde-claro: #A3D977;
   --verde-texto: #8CCB63;
   --amarillo: #F2C94C;
+  --agua: #4FB3BF;
+  --tierra: #9A6B45;
   --fondo: #0B0F0D;
   --tarjeta: #141916;
   --borde: #26302A;
@@ -82,12 +85,11 @@ button[kind="secondary"], [data-testid="stBaseButton-secondary"] {
   border-radius: 999px !important; border-color: var(--borde) !important;
 }
 
-/* Tarjetas */
+/* Tarjetas (login, perfil, capacitacion) */
 [class*="st-key-tarjeta"] {
   background: var(--tarjeta); border: 1px solid var(--borde) !important; border-radius: 18px;
   padding: 0.4rem 0.6rem;
 }
-[class*="st-key-tarjeta_pub"] [data-testid="stImage"] img { max-height: 420px; object-fit: cover; border-radius: 12px; }
 [class*="st-key-tarjeta_login"] { border-top: 3px solid var(--verde-claro) !important; padding: 1rem 1.2rem; }
 
 .bawi-marca { display: flex; align-items: center; gap: 12px; }
@@ -98,15 +100,6 @@ button[kind="secondary"], [data-testid="stBaseButton-secondary"] {
 .bawi-hero { font-size: 2.6rem; font-weight: 800; line-height: 1.1; margin: .4rem 0 1rem; }
 .bawi-tenue { color: var(--tenue); }
 
-.bawi-autor { display: flex; align-items: center; gap: 12px; }
-.bawi-avatar { width: 42px; height: 42px; border-radius: 50%; background: #1E3A2B; color: var(--verde-claro);
-  display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0; }
-.bawi-autor .nombre { font-weight: 700; }
-.bawi-autor .detalle { color: var(--tenue); font-size: .85rem; }
-.bawi-tema { margin-left: auto; background: #1E3A2B; color: var(--verde-texto); border-radius: 8px;
-  padding: 4px 10px; font-size: .8rem; font-weight: 700; white-space: nowrap; }
-.bawi-pub-titulo { font-size: 1.25rem; font-weight: 800; margin: .7rem 0 .3rem; }
-.bawi-pub-texto { color: #D5DDD7; white-space: pre-wrap; }
 /* Menu lateral como lista de secciones (sin circulos de radio) */
 [data-testid="stSidebar"] [role="radiogroup"] { gap: 6px; width: 100%; }
 [data-testid="stSidebar"] [role="radiogroup"] label {
@@ -120,11 +113,129 @@ button[kind="secondary"], [data-testid="stBaseButton-secondary"] {
 }
 [data-testid="stSidebar"] [role="radiogroup"] label:hover { background: #1D5139; }
 
+/* ======================= FEED ESTILO INSTAGRAM ======================= */
+/* Columna central angosta, como el feed de Instagram */
+.st-key-feed { max-width: 600px; width: 100%; margin: 0 auto; }
+
+/* Encabezado: la gota cae una sola vez al abrir la pagina y deja una onda */
+.bawi-gota { position: relative; display: inline-flex; animation: gota-cae .7s cubic-bezier(.3,1.4,.5,1) both; }
+.bawi-gota::after { content: ""; position: absolute; left: 50%; bottom: -6px; width: 44px; height: 10px;
+  margin-left: -22px; border: 2px solid var(--agua); border-radius: 50%; opacity: 0;
+  animation: onda 1s ease-out .55s 1; }
+@keyframes gota-cae { from { transform: translateY(-26px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes onda { 0% { transform: scale(.3); opacity: .9; } 100% { transform: scale(1.6); opacity: 0; } }
+
+/* Historias = temas. Circulos con anillo; en el celular se deslizan de lado */
+.st-key-historias [role="radiogroup"], .st-key-historias [data-baseweb="button-group"] {
+  flex-wrap: nowrap; overflow-x: auto; gap: 8px; padding: 6px 4px 8px; scrollbar-width: none; }
+.st-key-historias [role="radiogroup"]::-webkit-scrollbar { display: none; }
+.st-key-historias button { flex: 0 0 auto; width: 76px; height: auto; min-height: 0; overflow: visible;
+  padding: 0 !important; background: transparent !important; border: none !important; box-shadow: none !important; }
+.st-key-historias button p { margin: 0; font-size: .78rem; color: var(--tenue); white-space: nowrap; text-align: center; }
+.st-key-historias button p:first-child { width: 58px; height: 58px; margin: 4px auto 6px; border-radius: 50%;
+  font-size: 1.6rem; display: flex; align-items: center; justify-content: center; background: #17241D;
+  box-shadow: 0 0 0 2px var(--fondo), 0 0 0 4px var(--borde); transition: transform .15s; }
+.st-key-historias button:hover p:first-child { transform: scale(1.06); }
+.st-key-historias button[aria-checked="true"] p:first-child,
+.st-key-historias [data-testid="stBaseButton-segmented_controlActive"] p:first-child {
+  box-shadow: 0 0 0 2px var(--fondo), 0 0 0 4px var(--amarillo); }
+.st-key-historias button[aria-checked="true"] p,
+.st-key-historias [data-testid="stBaseButton-segmented_controlActive"] p { color: var(--texto); font-weight: 700; }
+
+/* Caja para publicar (en lugar del boton amarillo) */
+.st-key-btn_crear_feed button { justify-content: flex-start; border-radius: 14px !important;
+  background: var(--tarjeta) !important; border: 1px solid var(--borde) !important; padding: .8rem 1rem; }
+.st-key-btn_crear_feed button > div { justify-content: flex-start; }
+.st-key-btn_crear_feed button p { color: var(--tenue); }
+
+/* Publicacion: sin caja, separadas por una linea (como Instagram) */
+[class*="st-key-tarjeta_pub"] { background: transparent; border: none !important; border-radius: 0;
+  padding: .9rem 0 .6rem; border-bottom: 1px solid var(--borde) !important; }
+[class*="st-key-tarjeta_pub"] [data-testid="stImage"] img { width: 100%; aspect-ratio: 4 / 3.4; object-fit: cover;
+  border-radius: 10px; }
+[class*="st-key-tarjeta_pub"] [data-testid="stElementToolbar"] { display: none; }
+
+/* Avatar con anillo segun el rango */
+.bawi-autor { display: flex; align-items: center; gap: 11px; }
+.bawi-avatar { position: relative; width: 44px; height: 44px; flex-shrink: 0; }
+.bawi-avatar::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--borde); }
+.bawi-avatar span { position: absolute; inset: 3px; border-radius: 50%; background: #1E3A2B; color: var(--verde-claro);
+  display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: .9rem;
+  box-shadow: 0 0 0 2px var(--fondo); }
+.anillo-tecnico::before { background: var(--agua); }
+.anillo-especialista::before { background: var(--verde-claro); }
+.anillo-maestro::before { background: var(--amarillo); }
+/* Quien usa B.A.W.I. Riego: anillo de goteros que fluye (unica animacion continua) */
+.anillo-riego::before { background: repeating-conic-gradient(var(--agua) 0 16deg, transparent 16deg 26deg);
+  animation: fluye 9s linear infinite; }
+@keyframes fluye { to { transform: rotate(360deg); } }
+.bawi-autor .nombre { font-weight: 700; font-size: .95rem; }
+.bawi-autor .detalle { color: var(--tenue); font-size: .8rem; }
+.bawi-tema { margin-left: auto; color: var(--tenue); font-size: .8rem; white-space: nowrap; }
+
+/* Lienzo de surcos: publicaciones sin foto */
+.bawi-surco { position: relative; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; margin-top: .7rem;
+  display: flex; flex-direction: column; justify-content: flex-end; padding: 1.4rem 1.3rem;
+  background: repeating-linear-gradient(100deg, rgba(0,0,0,.20) 0 12px, transparent 12px 30px),
+              linear-gradient(160deg, var(--c1), var(--c2)); }
+.bawi-surco .icono { position: absolute; top: 1rem; left: 1.2rem; font-size: 2rem; }
+.bawi-surco .texto-grande { font-size: clamp(1.4rem, 5vw, 2rem); font-weight: 800; line-height: 1.15;
+  color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.45); max-width: 18ch; }
+.surco-riego { --c1: #1F5F66; --c2: #0E2E33; }
+.surco-plagas { --c1: #8A6A1C; --c2: #3A2C0B; }
+.surco-suelo { --c1: #7A5136; --c2: #2E1D12; }
+.surco-cultivo { --c1: #2C6B4C; --c2: #0F2A1D; }
+.surco-otro { --c1: #3B4A42; --c2: #161D19; }
+
+/* Pie de la publicacion */
+.bawi-pie { margin: .1rem 0 .2rem; color: #D5DDD7; line-height: 1.45; white-space: pre-wrap; }
+.bawi-pie b { color: var(--texto); }
+.bawi-pie .titulo-pub { font-weight: 700; color: var(--texto); }
+.bawi-chip-campo { display: inline-block; margin-top: .35rem; font-size: .78rem; color: var(--agua);
+  border: 1px solid #285F66; border-radius: 999px; padding: 1px 10px; }
+
+/* Brote (like): gris si no lo has dado; brota al darlo */
+[class*="st-key-brote_"] button, [class*="st-key-util_"] button { border: none !important;
+  background: transparent !important; padding: 2px 4px !important; min-height: 0; }
+[class*="st-key-brote_"] button p { font-size: 1.15rem; font-weight: 700; }
+[class*="st-key-brote_off_"] button p { filter: grayscale(1); opacity: .7; }
+[class*="st-key-brote_on_"] button p, [class*="st-key-util_on_"] button p {
+  display: inline-block; animation: brotar .45s cubic-bezier(.3,1.6,.5,1) both; }
+[class*="st-key-util_"] { margin-left: 55px; }
+[class*="st-key-util_"] button p { font-size: .85rem; color: var(--tenue); }
+[class*="st-key-util_on_"] button p { color: var(--verde-claro); font-weight: 700; }
+@keyframes brotar { 0% { transform: scale(.4) translateY(8px); } 60% { transform: scale(1.3) translateY(-3px); }
+  100% { transform: none; } }
+
+/* "Ver las N respuestas" como texto, sin caja */
+[class*="st-key-tarjeta_pub"] [data-testid="stExpander"] details { border: none; background: transparent; }
+[class*="st-key-tarjeta_pub"] [data-testid="stExpander"] summary { padding: .2rem 0; color: var(--tenue); }
+[class*="st-key-tarjeta_pub"] [data-testid="stExpander"] summary:hover { color: var(--texto); }
+.bawi-respuesta { color: #D5DDD7; margin: .35rem 0 .1rem 55px; white-space: pre-wrap; }
+.bawi-funciono { display: inline-block; background: #1F4D2E; color: #B9F08F; border-radius: 8px;
+  padding: 2px 10px; font-size: .78rem; font-weight: 700; margin: 4px 0 0 55px; }
+
+/* Dato de campo de Riego: tarjeta con la barra de agua aplicada */
+.bawi-campo { margin: .5rem 0 .3rem 55px; border: 1px solid #285F66; border-radius: 12px; padding: .7rem .9rem;
+  background: linear-gradient(180deg, #10262A, #0E1714); font-size: .86rem; color: #CFE3E1; }
+.bawi-campo .cab { display: flex; justify-content: space-between; color: var(--agua); font-weight: 700; }
+.bawi-campo .cab span { color: var(--tenue); font-weight: 400; }
+.bawi-campo .numeros { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin: .55rem 0; }
+.bawi-campo .numeros b { display: block; font-size: 1.15rem; color: var(--texto); }
+.bawi-campo .numeros small { color: var(--tenue); }
+.bawi-barra { height: 8px; border-radius: 99px; background: #1C2B2A; overflow: hidden; }
+.bawi-barra i { display: block; height: 100%; width: var(--nivel); border-radius: 99px;
+  background: linear-gradient(90deg, #2F8F9B, var(--agua)); transform-origin: left;
+  animation: llenar .9s ease-out both; }
+@keyframes llenar { from { transform: scaleX(0); } }
+.bawi-campo .nota { color: var(--tenue); margin-top: .45rem; }
+
 /* Celular: menos espacio en la portada y sin boton + duplicado */
 @media (max-width: 640px) {
   .bawi-logo-grande { display: none; }
   .bawi-hero { font-size: 1.8rem; }
   .st-key-btn_mas { display: none; }
+  .bawi-respuesta, .bawi-campo, .bawi-funciono, [class*="st-key-util_"] { margin-left: 0; }
 }
 
 /* Capacitacion */
@@ -135,8 +246,29 @@ button[kind="secondary"], [data-testid="stBaseButton-secondary"] {
 .bawi-afirmacion { font-size: 1.35rem; font-weight: 700; line-height: 1.35; margin: .3rem 0 .9rem; }
 .bawi-racha { color: var(--amarillo); font-weight: 700; }
 
-.bawi-funciono { display: inline-block; background: #1F4D2E; color: #B9F08F; border-radius: 8px;
-  padding: 2px 10px; font-size: .8rem; font-weight: 700; margin: 4px 0; }
+/* Arreglo: la foto no se encima en el nombre y no crece de mas en computadora */
+[data-testid="stMarkdownContainer"]:has(> .bawi-autor, > .bawi-pie, > .bawi-surco, > .bawi-campo, > .bawi-respuesta, > .bawi-caso) {
+  margin-bottom: 0 !important; }
+.bawi-autor { padding-bottom: .2rem; }
+[class*="st-key-tarjeta_pub"] [data-testid="stImage"] img { max-height: 520px; }
+
+/* Menu "⋯ Opciones" de tus publicaciones: discreto */
+[class*="st-key-tarjeta_pub"] [data-testid="stPopover"] button { border: none !important;
+  background: transparent !important; padding: 0 4px !important; min-height: 0; }
+[class*="st-key-tarjeta_pub"] [data-testid="stPopover"] button p { color: var(--tenue); font-size: .85rem; }
+
+/* Formularios */
+.bawi-caso { background: #12221C; border: 1px solid var(--borde); border-left: 4px solid var(--agua);
+  border-radius: 10px; padding: .75rem .95rem; color: #D5DDD7; font-size: .93rem; line-height: 1.5; margin: .3rem 0 .6rem; }
+.bawi-caso small { display: block; margin-top: .4rem; color: var(--tenue); font-size: .78rem; }
+[class*="st-key-fo_"] button, [class*="st-key-lista_form_"] button { justify-content: flex-start;
+  border-radius: 12px !important; text-align: left; }
+[class*="st-key-fo_"] button > div, [class*="st-key-lista_form_"] button > div { justify-content: flex-start; }
+
+/* Quien prefiere menos movimiento (ajuste del sistema) no ve animaciones */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
 </style>
 """
 
@@ -149,13 +281,19 @@ def marca(tamano: int = 44, lema: str = "Agua · Talento · Comunidad") -> str:
 # --------------------------------------------------------------------------
 # Conexion con la API (la app nunca habla directo con la base de datos)
 # --------------------------------------------------------------------------
+@st.cache_resource
+def sesion_http() -> requests.Session:
+    """Una sola conexion reutilizable hacia la API (keep-alive): cada clic es mas rapido."""
+    return requests.Session()
+
+
 def llamar_api(metodo: str, ruta: str, base: str = API_COMUNIDAD, **kwargs):
     """Regresa (True, datos) o (False, mensaje de error para mostrar)."""
     headers = kwargs.pop("headers", {})
     if st.session_state.get("token"):
         headers["Authorization"] = f"Bearer {st.session_state.token}"
     try:
-        resp = requests.request(metodo, f"{base}{ruta}", headers=headers, timeout=20, **kwargs)
+        resp = sesion_http().request(metodo, f"{base}{ruta}", headers=headers, timeout=20, **kwargs)
     except requests.exceptions.RequestException:
         return False, f"No se pudo conectar con el servidor ({API_URL}). ¿Está corriendo la API?"
     if resp.status_code == 200:
@@ -212,7 +350,7 @@ def descargar_archivo(ruta: str) -> bytes | None:
     """Descarga una foto o audio desde la API. Se manda como bytes a la pagina,
     asi tambien se ve desde el celular (que no puede abrir 'localhost')."""
     try:
-        resp = requests.get(f"{API_URL}{ruta}", timeout=20)
+        resp = sesion_http().get(f"{API_URL}{ruta}", timeout=20)
         return resp.content if resp.status_code == 200 else None
     except requests.exceptions.RequestException:
         return None
@@ -223,14 +361,41 @@ def iniciales(nombre: str) -> str:
     return "".join(p[0] for p in partes[:2]).upper() or "?"
 
 
+def hace(fecha: str) -> str:
+    """'2026-10-08 08:12' -> 'hace 2 h' (como Instagram)."""
+    try:
+        momento = datetime.strptime(fecha, "%Y-%m-%d %H:%M")
+    except ValueError:
+        return fecha
+    segundos = (datetime.now() - momento).total_seconds()
+    if segundos < 60:
+        return "ahora"
+    if segundos < 3600:
+        return f"hace {int(segundos // 60)} min"
+    if segundos < 86400:
+        return f"hace {int(segundos // 3600)} h"
+    dias = int(segundos // 86400)
+    if dias == 1:
+        return "ayer"
+    return f"hace {dias} días" if dias < 7 else momento.strftime("%d/%m/%Y")
+
+
+# Color del anillo del avatar segun el rango; quien usa Riego tiene el anillo de goteros
+ANILLOS = {"🌱": "aprendiz", "💧": "tecnico", "🌾": "especialista", "👑": "maestro"}
+
+
 def cabecera_autor(autor: dict, detalle: str, tema: str | None = None) -> None:
-    """Avatar con iniciales, nombre, rango y detalle (fecha, region)."""
+    """Avatar con anillo de rango, nombre con insignia y detalle (zona, fecha)."""
     rango = autor["rango"]
-    riego = " · 💧 usa B.A.W.Í. Riego" if autor["usa_riego"] else ""
+    anillo = "riego" if autor["usa_riego"] else ANILLOS.get(rango["insignia"], "aprendiz")
+    riego = " · 💧 riega con B.A.W.Í." if autor["usa_riego"] else ""
     tema_html = f'<span class="bawi-tema">{html.escape(tema)}</span>' if tema else ""
     st.markdown(
-        f'<div class="bawi-autor"><div class="bawi-avatar">{html.escape(iniciales(autor["nombre"]))}</div>'
-        f'<div><div class="nombre">{html.escape(autor["nombre"])} · {rango["insignia"]} {html.escape(rango["nombre"])}</div>'
+        f'<div class="bawi-autor">'
+        f'<div class="bawi-avatar anillo-{anillo}" title="{html.escape(rango["nombre"])}">'
+        f'<span>{html.escape(iniciales(autor["nombre"]))}</span></div>'
+        f'<div><div class="nombre">{html.escape(autor["nombre"])} '
+        f'<span title="{html.escape(rango["nombre"])}">{rango["insignia"]}</span></div>'
         f'<div class="detalle">{html.escape(autor["municipio"])}{riego} · {html.escape(detalle)}</div></div>'
         f'{tema_html}</div>',
         unsafe_allow_html=True,
@@ -251,36 +416,43 @@ def dar_like(ruta: str) -> None:
 # Publicaciones y respuestas
 # --------------------------------------------------------------------------
 def mostrar_dato_riego(dato: dict) -> None:
-    """Tarjeta con el calculo real de B.A.W.I. Riego que adjunto el productor."""
+    """Tarjeta con el calculo real de B.A.W.I. Riego que adjunto el productor.
+    La barra muestra cuanto rego frente a lo recomendado."""
     origen = " · clima de ejemplo" if dato["clima_de_ejemplo"] else ""
-    aplicado = ""
-    if dato["estado"] in ("aceptada", "ajustada") and dato["horas_aplicadas"] is not None:
-        aplicado = f" y regó **{dato['horas_aplicadas']} h**"
-    ahorro = ""
-    if dato["agua_ahorrada_m3"]:
-        ahorro = f" Ahorró **{dato['agua_ahorrada_m3']:,.0f} m³** de agua frente a su riego habitual."
-    st.info(
-        f"📊 **Dato de campo de B.A.W.Í. Riego** ({dato['fecha']}{origen})  \n"
-        f"🌳 {dato['cultivo']} · etapa {dato['etapa'].lower()} · {dato['municipio']}  \n"
-        f"🌡️ Máxima {dato['temp_max_c']} °C · 🌧️ {dato['prob_lluvia_pct']} % de probabilidad de lluvia  \n"
-        f"💧 El cultivo consumía **{dato['etc_mm']} mm/día**; la recomendación fue **{dato['horas_sugeridas']} h** "
-        f"de riego (riesgo {dato['riesgo']}). El productor {ESTADOS_RIEGO.get(dato['estado'], dato['estado'])}"
-        f"{aplicado}.{ahorro}"
+    estado = ESTADOS_RIEGO.get(dato["estado"], dato["estado"])
+    aplicadas = dato["horas_aplicadas"] if dato["estado"] in ("aceptada", "ajustada") else None
+    if aplicadas is not None and dato["horas_sugeridas"]:
+        nivel = min(aplicadas / dato["horas_sugeridas"], 1.0) * 100
+        regado = f"{aplicadas:g} h"
+    else:
+        nivel, regado = 0, "—"
+    ahorro = f" · ahorró {dato['agua_ahorrada_m3']:,.0f} m³" if dato["agua_ahorrada_m3"] else ""
+    st.markdown(
+        f'<div class="bawi-campo">'
+        f'<div class="cab">📊 Dato de campo de B.A.W.Í. Riego<span>{html.escape(dato["fecha"])}{origen}</span></div>'
+        f'<div>🌳 {html.escape(dato["cultivo"])}, etapa {html.escape(dato["etapa"].lower())} · '
+        f'{html.escape(dato["municipio"])}</div>'
+        f'<div class="numeros">'
+        f'<div><b>{dato["etc_mm"]:g} mm</b><small>consumo del día</small></div>'
+        f'<div><b>{dato["horas_sugeridas"]:g} h</b><small>recomendadas</small></div>'
+        f'<div><b>{regado}</b><small>el productor {estado}</small></div>'
+        f'</div>'
+        f'<div class="bawi-barra"><i style="--nivel:{nivel:.0f}%"></i></div>'
+        f'<div class="nota">🌡️ {dato["temp_max_c"]:g} °C máx · 🌧️ {dato["prob_lluvia_pct"]} % lluvia · '
+        f'riesgo {html.escape(str(dato["riesgo"]).lower())}{ahorro}</div>'
+        f'</div>',
+        unsafe_allow_html=True,
     )
 
 
 def mostrar_respuestas(pub: dict) -> None:
-    """Respuestas de una publicacion y, si el rango lo permite, el formulario para responder."""
-    ok, detalle = llamar_api("GET", f"/publicaciones/{pub['id_publicacion']}")
-    if not ok:
-        st.error(detalle)
-        return
+    """Respuestas (ya vienen con el feed) y, si el rango lo permite, el formulario para responder."""
     soy_autor = bool(yo) and yo["id_usuario"] == pub["autor"]["id_usuario"]
-    for resp in detalle["respuestas"]:
-        cabecera_autor(resp["autor"], resp["creada_en"])
+    for resp in pub.get("respuestas", []):
+        cabecera_autor(resp["autor"], hace(resp["creada_en"]))
+        st.markdown(f'<div class="bawi-respuesta">{html.escape(resp["texto"])}</div>', unsafe_allow_html=True)
         if resp["le_funciono_al_autor"]:
             st.markdown('<span class="bawi-funciono">✅ Le funcionó al autor</span>', unsafe_allow_html=True)
-        st.markdown(f'<div class="bawi-pub-texto">{html.escape(resp["texto"])}</div>', unsafe_allow_html=True)
         if resp["audio"]:
             audio = descargar_archivo(resp["audio"])
             if audio:
@@ -293,7 +465,7 @@ def mostrar_respuestas(pub: dict) -> None:
         if soy_autor:
             texto_boton = ("✅ Me funcionó" if resp["yo_di_like"] else "☑️ ¿Te funcionó? Márcalo") + f" · {resp['likes']}"
         else:
-            texto_boton = ("👍 Útil" if resp["yo_di_like"] else "👍") + f" · {resp['likes']}"
+            texto_boton = ("👍 Útil" if resp["yo_di_like"] else "👍 ¿Te sirvió?") + f" · {resp['likes']}"
         ayuda = None
         if not yo:
             ayuda = "Inicia sesión para dar like."
@@ -301,10 +473,11 @@ def mostrar_respuestas(pub: dict) -> None:
             ayuda = "No puedes dar like a tu propia respuesta."
         elif soy_autor:
             ayuda = "Márcala solo si pusiste en práctica la recomendación y te funcionó."
-        if st.button(texto_boton, key=f"like_resp_{resp['id_respuesta']}", disabled=not yo or es_mia, help=ayuda):
+        # La clave cambia con el estado: asi la animacion solo corre al darle like
+        clave = f"util_{'on' if resp['yo_di_like'] else 'off'}_{resp['id_respuesta']}"
+        if st.button(texto_boton, key=clave, disabled=not yo or es_mia, help=ayuda):
             dar_like(f"/respuestas/{resp['id_respuesta']}/like")
             st.rerun()
-        st.divider()
 
     st.caption(f"ℹ️ {NOTA_ZONA}")
     if not yo:
@@ -342,29 +515,89 @@ def mostrar_respuestas(pub: dict) -> None:
 
 
 def mostrar_publicacion(pub: dict) -> None:
-    """Tarjeta del feed: autor, tema, titulo, texto, foto, audio, likes y respuestas."""
+    """Publicacion estilo Instagram: autor, foto (o lienzo de surcos), brotes, pie y respuestas."""
+    tema = CATEGORIAS.get(pub["categoria"], pub["categoria"])
     with st.container(key=f"tarjeta_pub_{pub['id_publicacion']}"):
-        cabecera_autor(pub["autor"], pub["creada_en"], CATEGORIAS.get(pub["categoria"], pub["categoria"]))
-        st.markdown(f'<div class="bawi-pub-titulo">{html.escape(pub["titulo"])}</div>'
-                    f'<div class="bawi-pub-texto">{html.escape(pub["texto"])}</div>', unsafe_allow_html=True)
-        if pub["imagen"]:
-            foto = descargar_archivo(pub["imagen"])
-            if foto:
-                st.image(foto, width="stretch")
-            else:
-                st.caption("🖼️ No se pudo cargar la foto.")
+        detalle = hace(pub["creada_en"]) + (" · editada" if pub.get("editada") else "")
+        cabecera_autor(pub["autor"], detalle, tema)
+
+        foto = descargar_archivo(pub["imagen"]) if pub["imagen"] else None
+        if foto:
+            st.image(foto, width="stretch")
+        else:
+            # Sin foto: el titulo se muestra grande sobre surcos del color del tema
+            icono = tema.split()[0]
+            st.markdown(
+                f'<div class="bawi-surco surco-{html.escape(pub["categoria"])}"><span class="icono">{icono}</span>'
+                f'<div class="texto-grande">{html.escape(pub["titulo"])}</div></div>',
+                unsafe_allow_html=True,
+            )
         if pub["audio"]:
             audio = descargar_archivo(pub["audio"])
             if audio:
                 st.audio(audio)
-        corazon = "❤️" if pub["yo_di_like"] else "🤍"
-        if st.button(f"{corazon} {pub['likes']}", key=f"like_pub_{pub['id_publicacion']}", disabled=not yo,
-                     help=None if yo else "Inicia sesión para dar like."):
+
+        # Brote = like. La clave cambia con el estado para que la animacion corra solo al darlo
+        clave = f"brote_{'on' if pub['yo_di_like'] else 'off'}_{pub['id_publicacion']}"
+        if st.button(f"🌱 {pub['likes']}", key=clave, disabled=not yo,
+                     help="Dale un brote si esta publicación te sirvió." if yo else "Inicia sesión para dar like."):
             dar_like(f"/publicaciones/{pub['id_publicacion']}/like")
             st.rerun()
+
+        respuestas = pub.get("respuestas", [])
+        con_dato = any(r["dato_riego"] for r in respuestas)
+        chip = '<br><span class="bawi-chip-campo">📊 Respondida con dato de campo real</span>' if con_dato else ""
+        titulo = (f'<span class="titulo-pub">{html.escape(pub["titulo"])}</span><br>' if foto else "")
+        st.markdown(
+            f'<div class="bawi-pie"><b>{html.escape(pub["autor"]["nombre"])}</b> {titulo}'
+            f'{html.escape(pub["texto"])}{chip}</div>',
+            unsafe_allow_html=True,
+        )
+        if yo and yo["id_usuario"] == pub["autor"]["id_usuario"]:
+            opciones_de_autor(pub)
+
         n = pub["num_respuestas"]
-        with st.expander(f"💬 {n} respuesta(s)" if n else "💬 Aún sin respuestas", expanded=n > 0):
+        etiqueta = f"Ver {'la respuesta' if n == 1 else f'las {n} respuestas'}" if n else "Aún sin respuestas"
+        with st.expander(etiqueta):
             mostrar_respuestas(pub)
+
+
+def opciones_de_autor(pub: dict) -> None:
+    """Menu ⋯ que solo ve quien publico: editar o eliminar."""
+    id_pub = pub["id_publicacion"]
+    with st.popover("⋯ Opciones"):
+        if st.button("✏️ Editar publicación", key=f"editar_{id_pub}", width="stretch"):
+            dialogo_editar(pub)
+        st.divider()
+        seguro = st.checkbox("Sí, quiero eliminarla (también se borran sus respuestas)", key=f"seguro_{id_pub}")
+        if st.button("🗑️ Eliminar publicación", key=f"borrar_{id_pub}", disabled=not seguro, width="stretch"):
+            ok, datos = llamar_api("DELETE", f"/publicaciones/{id_pub}")
+            if ok:
+                avisar("Publicación eliminada.")
+                st.rerun()
+            st.error(datos)
+
+
+@st.dialog("Editar publicación", width="large")
+def dialogo_editar(pub: dict) -> None:
+    temas = list(CATEGORIAS)
+    with st.form(f"form_editar_{pub['id_publicacion']}", border=False):
+        titulo = st.text_input("Título", value=pub["titulo"])
+        categoria = st.selectbox("Tema", temas, format_func=lambda c: CATEGORIAS[c],
+                                 index=temas.index(pub["categoria"]) if pub["categoria"] in temas else 0)
+        texto = st.text_area("Contenido", value=pub["texto"], height=140)
+        st.caption("La foto y la nota de voz se quedan como están.")
+        guardar = st.form_submit_button("Guardar cambios", type="primary", width="stretch")
+    if guardar:
+        if len(titulo.strip()) < 3 or len(texto.strip()) < 3:
+            st.error("Escribe un título y un contenido de al menos 3 letras.")
+            return
+        ok, datos = llamar_api("PUT", f"/publicaciones/{pub['id_publicacion']}",
+                               json={"titulo": titulo, "texto": texto, "categoria": categoria})
+        if ok:
+            avisar("Publicación actualizada.")
+            st.rerun()
+        st.error(datos)
 
 
 @st.dialog("Crear publicación", width="large")
@@ -402,28 +635,33 @@ def dialogo_publicar() -> None:
         st.error(datos)
 
 
+HISTORIAS = {"todas": "🌄\n\nTodo", **{c: e.replace(" ", "\n\n", 1) for c, e in CATEGORIAS.items()}}
+
+
 def mostrar_feed(orden: str) -> None:
-    col_crear, col_tema = st.columns([1, 3], vertical_alignment="center")
-    if col_crear.button("＋ Crear publicación", type="primary", width="stretch"):
-        dialogo_publicar()
-    filtro = col_tema.segmented_control(
-        "Tema", ["todas"] + list(CATEGORIAS), default="todas", label_visibility="collapsed",
-        format_func=lambda c: "Todo" if c == "todas" else CATEGORIAS[c], key=f"filtro_{orden}",
-    )
-    parametros = {"orden": orden}
-    if filtro not in (None, "todas"):
-        parametros["categoria"] = filtro
-    buscar = st.session_state.get("buscar", "").strip()
-    if buscar:
-        parametros["buscar"] = buscar
-    ok, publicaciones = llamar_api("GET", "/publicaciones", params=parametros)
-    if not ok:
-        st.error(publicaciones)
-    elif not publicaciones:
-        st.info("No hay publicaciones con esos filtros. ¡Haz la primera pregunta!")
-    else:
-        for pub in publicaciones:
-            mostrar_publicacion(pub)
+    with st.container(key="feed"):
+        if st.button("📷  ¿Qué observaste hoy en tu parcela?", key="btn_crear_feed", width="stretch"):
+            dialogo_publicar()
+        # Historias = temas: tocar un circulo filtra el feed
+        with st.container(key="historias"):
+            filtro = st.segmented_control(
+                "Tema", list(HISTORIAS), default="todas", label_visibility="collapsed",
+                format_func=lambda c: HISTORIAS[c], key=f"filtro_{orden}",
+            )
+        parametros = {"orden": orden, "con_respuestas": "true"}
+        if filtro not in (None, "todas"):
+            parametros["categoria"] = filtro
+        buscar = st.session_state.get("buscar", "").strip()
+        if buscar:
+            parametros["buscar"] = buscar
+        ok, publicaciones = llamar_api("GET", "/publicaciones", params=parametros)
+        if not ok:
+            st.error(publicaciones)
+        elif not publicaciones:
+            st.info("No hay publicaciones con esos filtros. ¡Haz la primera pregunta!")
+        else:
+            for pub in publicaciones:
+                mostrar_publicacion(pub)
 
 
 # --------------------------------------------------------------------------
@@ -466,34 +704,70 @@ def pantalla_acceso() -> None:
             if st.button("Crear cuenta", width="stretch", key="ir_crear"):
                 st.session_state.vista_acceso = "crear"
                 st.rerun()
+        elif st.session_state.registro:
+            pantalla_codigo()
         else:
             st.markdown('<div class="bawi-etiqueta">Únete a Comunidad</div>', unsafe_allow_html=True)
             st.subheader("Crear cuenta")
-            st.caption("Empiezas como 🌱 Aprendiz del Campo y subes de rango participando.")
+            st.caption("Paso 1 de 2 · Te enviaremos un código a tu correo para confirmar que es tuyo.")
             with st.form("form_crear", border=False):
                 nombre = st.text_input("Nombre que aparecerá en tu perfil")
                 correo = st.text_input("Correo electrónico", placeholder="tu@correo.com")
                 municipio = st.selectbox("Zona de tu cultivo", REGIONES)
                 password = st.text_input("Contraseña (mínimo 6)", type="password")
                 confirmacion = st.text_input("Confirma tu contraseña", type="password")
-                crear = st.form_submit_button("Crear cuenta", type="primary", width="stretch")
+                crear = st.form_submit_button("Enviarme el código", type="primary", width="stretch")
             if crear:
                 if password != confirmacion:
                     st.error("Las contraseñas no coinciden.")
                 else:
-                    ok, datos = llamar_api("POST", "/registro", json={
-                        "nombre": nombre, "correo": correo, "municipio": municipio,
-                        "password": password, "confirmacion": confirmacion,
-                    })
+                    with st.spinner("Enviando el código a tu correo..."):
+                        ok, datos = llamar_api("POST", "/registro/solicitar", json={
+                            "nombre": nombre, "correo": correo, "municipio": municipio,
+                            "password": password, "confirmacion": confirmacion,
+                        })
                     if ok:
-                        iniciar_sesion(datos)
-                        avisar(f"¡Bienvenido a la comunidad, {datos['usuario']['nombre']}!")
+                        st.session_state.registro = datos
                         st.rerun()
                     st.error(datos)
             st.divider()
             if st.button("Ya tengo cuenta", width="stretch"):
                 st.session_state.vista_acceso = "entrar"
                 st.rerun()
+
+
+def pantalla_codigo() -> None:
+    """Paso 2 de crear cuenta: escribir el codigo que llego al correo."""
+    registro = st.session_state.registro
+    st.markdown('<div class="bawi-etiqueta">Verifica tu correo</div>', unsafe_allow_html=True)
+    st.subheader("Escribe tu código")
+    st.caption(f"Paso 2 de 2 · Enviamos un código de 6 números a **{registro['correo']}**. "
+               f"Vence en {registro['minutos']} minutos. Si no lo ves, revisa la carpeta de spam.")
+    if registro.get("modo_prueba"):
+        st.info("Modo prueba: el envío de correos no está configurado. El código aparece en la terminal de la API.")
+    with st.form("form_codigo", border=False):
+        codigo = st.text_input("Código de verificación", max_chars=6, placeholder="000000")
+        verificar = st.form_submit_button("Verificar y crear cuenta", type="primary", width="stretch")
+    if verificar:
+        ok, datos = llamar_api("POST", "/registro/verificar", json={"correo": registro["correo"], "codigo": codigo.strip()})
+        if ok:
+            st.session_state.registro = None
+            st.session_state.vista_acceso = "entrar"  # al cerrar sesion vuelve a "Iniciar sesion"
+            iniciar_sesion(datos)
+            avisar(f"¡Correo verificado! Bienvenido a la comunidad, {datos['usuario']['nombre']}.")
+            st.rerun()
+        st.error(datos)
+    if st.button("Reenviar código", width="stretch"):
+        with st.spinner("Enviando un código nuevo..."):
+            ok, datos = llamar_api("POST", "/registro/reenviar", json={"correo": registro["correo"]})
+        if ok:
+            st.session_state.registro = datos
+            st.success("Te enviamos un código nuevo. El anterior ya no sirve.")
+        else:
+            st.warning(datos)
+    if st.button("Usar otro correo", width="stretch"):
+        st.session_state.registro = None
+        st.rerun()
 
 
 def pantalla_perfil() -> None:
@@ -546,7 +820,8 @@ def pantalla_perfil() -> None:
         st.rerun()
 
 
-DINAMICAS = {"palabra": "📖 Conoce una palabra", "verdadero_falso": "✅ Verdadero o falso"}
+DINAMICAS = {"palabra": "📖 Conoce una palabra", "verdadero_falso": "✅ Verdadero o falso",
+             "formulario": "📝 Formularios"}
 
 
 def aprender_palabra(id_quiz: int) -> None:
@@ -636,8 +911,8 @@ def siguiente_afirmacion() -> None:
                            "mensaje": "Practicaste sin cuenta. Inicia sesión para ganar puntos y subir de rango."}
         return
     respuestas = [{"id_pregunta": int(p), "id_opcion": o} for p, o in vf["primeros"].items()]
-    ok, resultado = llamar_capacitacion("POST", f"/cuestionarios/{vf['quiz']['id_quiz']}/terminar",
-                                        json={"respuestas": respuestas})
+    ruta = vf.get("ruta_terminar") or f"/cuestionarios/{vf['quiz']['id_quiz']}/terminar"
+    ok, resultado = llamar_capacitacion("POST", ruta, json={"respuestas": respuestas})
     if not ok:
         vf["feedback"] = {"tipo": "error", "titulo": resultado, "texto": ""}
         return
@@ -652,6 +927,8 @@ def salir_cuestionario() -> None:
 
 def mostrar_verdadero_falso(info: dict | None, con_sesion: bool) -> None:
     vf = st.session_state.vf
+    if vf and vf.get("tipo") == "formulario":  # hay un formulario a medias: aqui no se mezcla
+        vf = None
     if vf and vf["resultado"]:
         r = vf["resultado"]
         with st.container(key="tarjeta_resultado"):
@@ -708,6 +985,109 @@ def mostrar_verdadero_falso(info: dict | None, con_sesion: bool) -> None:
     st.button("Salir del cuestionario", key="btn_salir_vf", on_click=salir_cuestionario)
 
 
+# --- Formularios: 10 por rango, 5 preguntas de opcion multiple -----------------------
+NIVELES = {1: "🌱 Aprendiz", 2: "💧 Técnico", 3: "🌾 Especialista", 4: "👑 Maestro"}
+NOMBRE_NIVEL = {1: "Aprendiz del Campo", 2: "Técnico de Riego", 3: "Especialista Agrónomo", 4: "Maestro de la Tierra"}
+TEMA_NIVEL = {1: "vocabulario y fundamentos", 2: "lectura y aplicación de datos",
+              3: "cálculos encadenados", 4: "revisión crítica y trazabilidad"}
+FUENTES = {"M": "Contexto Maestro B.A.W.Í.", "F": "FAO-56", "L": "FAO, Irrigation Water Management",
+           "G": "FAO, Drip Irrigation", "U": "Conversión de unidades y aritmética"}
+
+
+def empezar_formulario(info: dict) -> None:
+    ok, quiz = llamar_capacitacion("GET", f"/formularios/{info['id_quiz']}")
+    if not ok:
+        avisar(quiz, "error")
+        return
+    st.session_state.vf = {
+        "tipo": "formulario", "ruta_terminar": f"/formularios/{info['id_quiz']}/terminar",
+        "quiz": quiz, "con_puntos": info["con_puntos"], "indice": 0, "primeros": {},
+        "aciertos": 0, "racha": 0, "bono": False, "feedback": None, "resuelta": False, "resultado": None,
+    }
+
+
+def mostrar_formulario_en_curso(vf: dict) -> None:
+    quiz = vf["quiz"]
+    preguntas = quiz["preguntas"]
+    pregunta = preguntas[vf["indice"]]
+    with st.container(key="tarjeta_form"):
+        st.progress(vf["indice"] / len(preguntas),
+                    text=f"{quiz['codigo']} · Pregunta {vf['indice'] + 1} de {len(preguntas)}"
+                         + ("" if vf["con_puntos"] else " · práctica sin puntos"))
+        st.markdown(f'<div class="bawi-racha">🔥 Racha: {vf["racha"]}</div>', unsafe_allow_html=True)
+        if quiz["contexto"]:
+            st.markdown(f'<div class="bawi-caso"><b>📋 Caso</b><br>{html.escape(quiz["contexto"])}'
+                        f'<small>Valores simulados para practicar; no son recomendaciones para tu cultivo.</small></div>',
+                        unsafe_allow_html=True)
+        st.markdown(f'<div class="bawi-afirmacion">{html.escape(pregunta["enunciado"])}</div>', unsafe_allow_html=True)
+        for letra, opcion in zip("ABCD", pregunta["opciones"]):
+            st.button(f"{letra})  {opcion['texto']}", width="stretch", disabled=vf["resuelta"],
+                      key=f"fo_{pregunta['id_pregunta']}_{opcion['id_opcion']}",
+                      on_click=responder_afirmacion, args=(pregunta["id_pregunta"], opcion["id_opcion"]))
+        feedback = vf["feedback"]
+        if feedback:
+            getattr(st, feedback["tipo"])(f"**{feedback['titulo']}**  \n{feedback['texto']}")
+        if vf["resuelta"]:
+            fuentes = [FUENTES.get(f, f) for f in (pregunta.get("fuentes") or "").split(",") if f]
+            if fuentes:
+                st.caption("📚 Fuentes: " + " · ".join(fuentes))
+            ultima = vf["indice"] + 1 == len(preguntas)
+            st.button("Ver resultado 🏁" if ultima else "Siguiente →", type="primary", width="stretch",
+                      key="btn_siguiente_form", on_click=siguiente_afirmacion)
+    st.button("Salir del formulario", key="btn_salir_form", on_click=salir_cuestionario)
+
+
+def mostrar_formularios() -> None:
+    vf = st.session_state.vf
+    if vf and vf.get("tipo") == "formulario":
+        if vf["resultado"]:
+            r = vf["resultado"]
+            with st.container(key="tarjeta_resultado_form"):
+                st.subheader(f"🏁 {vf['quiz']['codigo']} · {vf['quiz']['titulo']}")
+                c1, c2, c3 = st.columns(3)
+                c1.metric("Aciertos al primer intento", f"{r['aciertos']} de {r['total']}")
+                c2.metric("Bono por racha", f"+{r['bono_racha']}")
+                c3.metric("Puntos ganados", f"+{r['puntos_ganados']}")
+                (st.success if r["puntos_ganados"] else st.info)(r["mensaje"])
+                st.button("Volver a Formularios", width="stretch", on_click=salir_cuestionario, key="btn_volver_form")
+        else:
+            mostrar_formulario_en_curso(vf)
+        return
+
+    ok, datos = llamar_capacitacion("GET", "/formularios")
+    if not ok:
+        st.error(datos)
+        return
+    if not datos["formularios"]:
+        if datos["en_revision"]:
+            st.info(f"📝 Hay {datos['en_revision']} formularios en revisión técnica. Aparecerán aquí al aprobarlos.")
+        else:
+            st.info("Aún no hay formularios cargados. Corre: python -m backend.seed_formularios")
+        return
+
+    mi_nivel = datos["nivel_usuario"]
+    st.caption("Cada rango tiene 10 formularios de 5 preguntas. Los de **tu rango** dan puntos "
+               "(+5 por acierto al primer intento y +5 por 3 seguidas, máximo 30); los de rangos anteriores "
+               "son práctica. Si fallas, ves la explicación y puedes volver a intentar.")
+    nivel = st.segmented_control("Nivel", list(NIVELES), default=mi_nivel, key="nivel_form",
+                                 format_func=lambda n: NIVELES[n] + (" · tú" if n == mi_nivel else ""),
+                                 label_visibility="collapsed") or mi_nivel
+    st.markdown(f"**{NOMBRE_NIVEL[nivel]}** · {TEMA_NIVEL[nivel]}")
+    if nivel > mi_nivel:
+        st.caption(f"🔒 Se desbloquean al llegar a {NOMBRE_NIVEL[nivel]}.")
+    for f in [f for f in datos["formularios"] if f["nivel"] == nivel]:
+        if f["completado"]:
+            estado = "✅ completado"
+        elif f["con_puntos"]:
+            estado = "⭐ da puntos"
+        elif f["bloqueado"]:
+            estado = "🔒"
+        else:
+            estado = "práctica"
+        st.button(f"{f['codigo']} · {f['titulo']}  —  {estado}", key=f"lista_form_{f['id_quiz']}",
+                  width="stretch", disabled=f["bloqueado"], on_click=empezar_formulario, args=(f,))
+
+
 def pantalla_capacitacion() -> None:
     st.markdown('<div class="bawi-etiqueta">Talento y capacitación</div>', unsafe_allow_html=True)
     st.subheader("🎓 Capacitación")
@@ -738,6 +1118,8 @@ def pantalla_capacitacion() -> None:
                                     default="palabra", key="dinamica", label_visibility="collapsed")
     if dinamica == "verdadero_falso":
         mostrar_verdadero_falso(hoy["cuestionario"], hoy["con_sesion"])
+    elif dinamica == "formulario":
+        mostrar_formularios()
     else:
         mostrar_palabra(hoy["palabra"], hoy["con_sesion"])
 
@@ -748,7 +1130,8 @@ def pantalla_capacitacion() -> None:
 st.set_page_config(page_title="B.A.W.Í. Comunidad", page_icon="💧", layout="wide")
 st.markdown(CSS, unsafe_allow_html=True)
 for clave, valor in {"token": None, "usuario": None, "aviso": None, "invitado": False,
-                     "vista_acceso": "entrar", "menu": "inicio", "vf": None, "globos": False}.items():
+                     "vista_acceso": "entrar", "menu": "inicio", "vf": None, "globos": False,
+                     "registro": None}.items():
     st.session_state.setdefault(clave, valor)
 
 # Los puntos y el rango cambian al participar: se vuelven a pedir en cada recarga
@@ -807,7 +1190,7 @@ elif col_cuenta.button("Iniciar sesión", width="stretch"):
     st.rerun()
 
 st.markdown(
-    f'<div class="bawi-marca" style="margin:.8rem 0 .2rem">{LOGO_SVG.format(t=52)}<div>'
+    f'<div class="bawi-marca" style="margin:.8rem 0 .2rem"><span class="bawi-gota">{LOGO_SVG.format(t=52)}</span><div>'
     f'<div class="titulo" style="letter-spacing:0;font-size:1.5rem">Comunidad</div>'
     f'<div class="bawi-tenue">Preguntas de campo, experiencias y conocimiento compartido.</div></div></div>',
     unsafe_allow_html=True,
