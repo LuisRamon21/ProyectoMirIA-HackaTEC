@@ -68,6 +68,73 @@ def descargar_archivo(ruta: str) -> bytes | None:
         return None
 
 
+ESTADOS_RIEGO = {"aceptada": "aceptó", "ajustada": "ajustó", "rechazada": "rechazó", "pendiente": "aún no decide"}
+
+
+def mostrar_dato_riego(dato: dict) -> None:
+    """Tarjeta con el calculo real de B.A.W.I. Riego que adjunto el productor."""
+    origen = " · clima de ejemplo" if dato["clima_de_ejemplo"] else ""
+    aplicado = ""
+    if dato["estado"] in ("aceptada", "ajustada") and dato["horas_aplicadas"] is not None:
+        aplicado = f" y regó **{dato['horas_aplicadas']} h**"
+    ahorro = ""
+    if dato["agua_ahorrada_m3"]:
+        ahorro = f" Ahorró **{dato['agua_ahorrada_m3']:,.0f} m³** de agua frente a su riego habitual."
+    st.info(
+        f"📊 **Dato de campo de B.A.W.Í. Riego** ({dato['fecha']}{origen})  \n"
+        f"🌳 {dato['cultivo']} · etapa {dato['etapa'].lower()} · {dato['municipio']}  \n"
+        f"🌡️ Máxima {dato['temp_max_c']} °C · 🌧️ {dato['prob_lluvia_pct']} % de probabilidad de lluvia  \n"
+        f"💧 El cultivo consumía **{dato['etc_mm']} mm/día**; la recomendación fue **{dato['horas_sugeridas']} h** "
+        f"de riego (riesgo {dato['riesgo']}). El productor {ESTADOS_RIEGO.get(dato['estado'], dato['estado'])}"
+        f"{aplicado}.{ahorro}"
+    )
+
+
+def mostrar_respuestas(pub: dict) -> None:
+    """Respuestas de una publicacion y, con sesion, el formulario para responder."""
+    ok, detalle = llamar_api("GET", f"/publicaciones/{pub['id_publicacion']}")
+    if not ok:
+        st.error(detalle)
+        return
+    for resp in detalle["respuestas"]:
+        autor = resp["autor"]
+        insignia = " · 💧 usa B.A.W.Í. Riego" if autor["usa_riego"] else ""
+        st.markdown(f"**{autor['nombre']}** · {autor['municipio']}{insignia}")
+        st.caption(resp["creada_en"])
+        st.write(resp["texto"])
+        if resp["audio"]:
+            audio = descargar_archivo(resp["audio"])
+            if audio:
+                st.audio(audio)
+        if resp["dato_riego"]:
+            mostrar_dato_riego(resp["dato_riego"])
+        st.divider()
+
+    if not yo:
+        st.caption("Para responder, entra o crea tu cuenta en **👤 Mi cuenta**.")
+        return
+    with st.form(f"form_responder_{pub['id_publicacion']}", clear_on_submit=True):
+        texto = st.text_area("Tu respuesta", height=90)
+        voz = st.audio_input("🎤 Nota de voz (opcional)")
+        adjuntar = False
+        if yo["usa_riego"]:
+            adjuntar = st.checkbox("📊 Adjuntar mi dato de campo de B.A.W.Í. Riego (mi última recomendación)")
+        enviar = st.form_submit_button("Responder", type="primary")
+    if enviar:
+        if len(texto.strip()) < 2:
+            st.error("Escribe tu respuesta.")
+            return
+        archivos = {"audio": ("nota_de_voz.wav", voz.getvalue(), "audio/wav")} if voz else None
+        with st.spinner("Enviando respuesta..."):
+            ok, datos = llamar_api("POST", f"/publicaciones/{pub['id_publicacion']}/respuestas",
+                                   data={"texto": texto, "adjuntar_riego": str(adjuntar).lower()},
+                                   files=archivos)
+        if ok:
+            st.session_state.aviso = "¡Gracias por ayudar! Tu respuesta ya está publicada."
+            st.rerun()
+        st.error(datos)
+
+
 def mostrar_publicacion(pub: dict) -> None:
     """Dibuja una publicacion como tarjeta del feed."""
     autor = pub["autor"]
@@ -87,7 +154,10 @@ def mostrar_publicacion(pub: dict) -> None:
             audio = descargar_archivo(pub["audio"])
             if audio:
                 st.audio(audio)
-        st.caption(f"💬 {pub['num_respuestas']} respuesta(s)")
+        n = pub["num_respuestas"]
+        titulo = f"💬 {n} respuesta(s)" if n else "💬 Sé el primero en responder"
+        with st.expander(titulo, expanded=n > 0):
+            mostrar_respuestas(pub)
 
 st.set_page_config(page_title="B.A.W.Í. Comunidad", page_icon="🌾", layout="wide")
 st.session_state.setdefault("token", None)
