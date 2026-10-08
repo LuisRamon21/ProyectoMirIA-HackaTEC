@@ -8,6 +8,7 @@ from backend.services.orquestador import generar_diagnostico_riego
 from backend.db import engine
 from backend.services import registro_riego
 from backend.routers.comunidad import MEDIA_DIR, router as comunidad_router
+from backend.routers.capacitacion import router as capacitacion_router
 # 1. Inicializar la aplicación FastAPI
 app = FastAPI(
     title="API B.A.W.Í. Backend",
@@ -26,6 +27,8 @@ app.add_middleware(
 
 # Rutas de B.A.W.I. Comunidad (backend/routers/comunidad.py)
 app.include_router(comunidad_router)
+# Capacitacion: dinamicas "Conoce una palabra" y "Verdadero o falso" (backend/routers/capacitacion.py)
+app.include_router(capacitacion_router)
 
 
 # Fotos y notas de voz de Comunidad: se sirven en /media/...

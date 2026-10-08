@@ -6,6 +6,7 @@ B.A.W.I. Comunidad - red de aprendizaje entre productores (Streamlit).
 - Rangos y puntos: solo Especialista Agronomo y Maestro de la Tierra responden;
   "Le funciono al autor" da +10 a quien respondio; +5 a quien pregunta (max. 20)
 - Respuestas de productores de B.A.W.I. Riego con su dato de campo real
+- Capacitacion: "Conoce una palabra" y "Verdadero o falso" (una dinamica con puntos al dia)
 
 Ejecutar desde la raiz del proyecto (con la API corriendo):
     streamlit run apps/comunidad/app.py --server.port 8503
@@ -20,6 +21,7 @@ from dotenv import load_dotenv
 load_dotenv()
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 API_COMUNIDAD = f"{API_URL}/api/comunidad"
+API_CAPACITACION = f"{API_URL}/api/capacitacion"
 REGIONES = ["Delicias", "Cuauhtémoc", "Camargo", "Chihuahua", "Otra"]
 
 CATEGORIAS = {
@@ -125,6 +127,14 @@ button[kind="secondary"], [data-testid="stBaseButton-secondary"] {
   .st-key-btn_mas { display: none; }
 }
 
+/* Capacitacion */
+.bawi-palabra { font-size: 2.3rem; font-weight: 800; color: var(--verde-claro); line-height: 1.15; margin: .2rem 0 .5rem; }
+.bawi-definicion { font-size: 1.12rem; color: var(--texto); margin-bottom: .8rem; }
+.bawi-ejemplo { background: #1A2C22; border-left: 4px solid var(--amarillo); border-radius: 10px;
+  padding: .7rem .9rem; color: #D5DDD7; margin-bottom: .8rem; }
+.bawi-afirmacion { font-size: 1.35rem; font-weight: 700; line-height: 1.35; margin: .3rem 0 .9rem; }
+.bawi-racha { color: var(--amarillo); font-weight: 700; }
+
 .bawi-funciono { display: inline-block; background: #1F4D2E; color: #B9F08F; border-radius: 8px;
   padding: 2px 10px; font-size: .8rem; font-weight: 700; margin: 4px 0; }
 </style>
@@ -139,13 +149,13 @@ def marca(tamano: int = 44, lema: str = "Agua · Talento · Comunidad") -> str:
 # --------------------------------------------------------------------------
 # Conexion con la API (la app nunca habla directo con la base de datos)
 # --------------------------------------------------------------------------
-def llamar_api(metodo: str, ruta: str, **kwargs):
+def llamar_api(metodo: str, ruta: str, base: str = API_COMUNIDAD, **kwargs):
     """Regresa (True, datos) o (False, mensaje de error para mostrar)."""
     headers = kwargs.pop("headers", {})
     if st.session_state.get("token"):
         headers["Authorization"] = f"Bearer {st.session_state.token}"
     try:
-        resp = requests.request(metodo, f"{API_COMUNIDAD}{ruta}", headers=headers, timeout=20, **kwargs)
+        resp = requests.request(metodo, f"{base}{ruta}", headers=headers, timeout=20, **kwargs)
     except requests.exceptions.RequestException:
         return False, f"No se pudo conectar con el servidor ({API_URL}). ¿Está corriendo la API?"
     if resp.status_code == 200:
@@ -159,7 +169,12 @@ def llamar_api(metodo: str, ruta: str, **kwargs):
     return False, detalle
 
 
+def llamar_capacitacion(metodo: str, ruta: str, **kwargs):
+    return llamar_api(metodo, ruta, base=API_CAPACITACION, **kwargs)
+
+
 def iniciar_sesion(datos: dict) -> None:
+    st.session_state.vf = None
     st.session_state.token = datos["token"]
     st.session_state.usuario = datos["usuario"]
     st.session_state.invitado = False
@@ -172,6 +187,7 @@ def ir_a(seccion: str) -> None:
 
 
 def cerrar_sesion() -> None:
+    st.session_state.vf = None
     st.session_state.token = None
     st.session_state.usuario = None
     st.session_state.invitado = False
@@ -179,6 +195,16 @@ def cerrar_sesion() -> None:
 
 def avisar(mensaje: str, tipo: str = "success") -> None:
     st.session_state.aviso = (tipo, mensaje)
+
+
+def avisar_puntos(datos: dict) -> None:
+    """Aviso despues de una dinamica: puntos ganados y, si aplica, el nuevo rango (con globos)."""
+    mensaje = datos["mensaje"]
+    if datos.get("subio_de_rango") and datos.get("rango_nuevo"):
+        rango = datos["rango_nuevo"]
+        mensaje += f" 🎉 ¡Subiste de rango! Ahora eres {rango['insignia']} **{rango['nombre']}**."
+        st.session_state.globos = True
+    avisar(mensaje, "success" if datos.get("puntos_ganados") else "info")
 
 
 @st.cache_data(show_spinner=False, max_entries=200)
@@ -513,16 +539,207 @@ def pantalla_perfil() -> None:
                    "Responde dudas": "Sí" if r["puede_responder"] else "No"} for r in rangos])
     st.markdown("- **+5** cuando un Especialista o Maestro responde tu duda (una vez por publicación, máximo 20).\n"
                 "- **+10** cuando el autor marca que tu respuesta **le funcionó** (una vez por publicación).\n"
+                "- **+5** por palabra aprendida o por acierto en Verdadero o falso (una dinámica al día).\n"
                 "- Quien contrata **B.A.W.Í. Riego** es Maestro de la Tierra.")
     if st.button("Cerrar sesión"):
         cerrar_sesion()
         st.rerun()
 
 
+DINAMICAS = {"palabra": "📖 Conoce una palabra", "verdadero_falso": "✅ Verdadero o falso"}
+
+
+def aprender_palabra(id_quiz: int) -> None:
+    ok, datos = llamar_capacitacion("POST", f"/palabras/{id_quiz}/aprender")
+    if ok:
+        avisar_puntos(datos)
+    else:
+        avisar(datos, "warning")
+
+
+def mostrar_palabra(palabra: dict | None, con_sesion: bool) -> None:
+    """Dinamica 1: tarjeta con la palabra del dia, su explicacion sencilla y un ejemplo de campo."""
+    if not palabra:
+        st.info("Aún no hay palabras cargadas. Corre: python -m backend.seed_capacitacion")
+        return
+    with st.container(key="tarjeta_palabra"):
+        st.markdown('<div class="bawi-etiqueta">Palabra del día</div>'
+                    f'<div class="bawi-palabra">{html.escape(palabra["palabra"])}</div>'
+                    f'<div class="bawi-definicion">{html.escape(palabra["explicacion"])}</div>',
+                    unsafe_allow_html=True)
+        if palabra["ejemplo"]:
+            st.markdown(f'<div class="bawi-ejemplo">🌾 <b>En el campo:</b> {html.escape(palabra["ejemplo"])}</div>',
+                        unsafe_allow_html=True)
+        if not con_sesion:
+            st.caption("🔒 Inicia sesión para ganar +5 puntos con la palabra del día.")
+        elif palabra["con_puntos"]:
+            st.button("✅ ¡La aprendí! · +5 puntos", type="primary", width="stretch", key="btn_aprender",
+                      on_click=aprender_palabra, args=(palabra["id_quiz"],))
+        elif palabra["ya_aprendida"]:
+            st.success("Ya aprendiste esta palabra. ¡Mañana habrá otra!")
+        else:
+            st.caption("Hoy ya ganaste tus puntos de Capacitación. Léela para aprender; mañana podrás sumar.")
+
+
+# --- Dinamica 3: Verdadero o falso -------------------------------------------------
+def empezar_cuestionario(info: dict) -> None:
+    ok, quiz = llamar_capacitacion("GET", f"/cuestionarios/{info['id_quiz']}")
+    if not ok:
+        avisar(quiz, "error")
+        return
+    st.session_state.vf = {
+        "quiz": quiz, "con_puntos": info["con_puntos"], "indice": 0, "primeros": {},
+        "aciertos": 0, "racha": 0, "bono": False, "feedback": None, "resuelta": False, "resultado": None,
+    }
+
+
+def responder_afirmacion(id_pregunta: int, id_opcion: int) -> None:
+    vf = st.session_state.vf
+    ok, revision = llamar_capacitacion("POST", f"/preguntas/{id_pregunta}/revisar", json={"id_opcion": id_opcion})
+    if not ok:
+        vf["feedback"] = {"tipo": "error", "titulo": revision, "texto": ""}
+        return
+    primer_intento = str(id_pregunta) not in vf["primeros"]
+    if primer_intento:
+        vf["primeros"][str(id_pregunta)] = id_opcion
+    puntos = vf["quiz"]["puntos_por_acierto"]
+    if revision["correcta"]:
+        if primer_intento:
+            vf["aciertos"] += 1
+            vf["racha"] += 1
+            titulo = f"¡Correcto! +{puntos} puntos" if vf["con_puntos"] else "¡Correcto!"
+            if vf["racha"] >= 3 and not vf["bono"]:
+                vf["bono"] = True
+                titulo += f" · 🔥 ¡3 seguidas! +{vf['quiz']['bono_racha']} extra" if vf["con_puntos"] else \
+                    " · 🔥 ¡3 seguidas!"
+        else:
+            titulo = "¡Correcto! Aprendizaje completado (sin puntos, porque recibiste una pista)."
+        vf["feedback"] = {"tipo": "success", "titulo": titulo, "texto": revision["explicacion"]}
+        vf["resuelta"] = True
+    else:
+        vf["racha"] = 0
+        vf["feedback"] = {"tipo": "warning", "titulo": "No es correcto. Tu racha vuelve a cero.",
+                          "texto": f"💡 Pista: {revision['pista']} Intenta de nuevo."}
+
+
+def siguiente_afirmacion() -> None:
+    vf = st.session_state.vf
+    preguntas = vf["quiz"]["preguntas"]
+    if vf["indice"] + 1 < len(preguntas):
+        vf["indice"] += 1
+        vf["feedback"] = None
+        vf["resuelta"] = False
+        return
+    total = len(preguntas)
+    if not st.session_state.token:  # sin cuenta: solo practica
+        vf["resultado"] = {"aciertos": vf["aciertos"], "total": total, "puntos_ganados": 0, "bono_racha": 0,
+                           "mensaje": "Practicaste sin cuenta. Inicia sesión para ganar puntos y subir de rango."}
+        return
+    respuestas = [{"id_pregunta": int(p), "id_opcion": o} for p, o in vf["primeros"].items()]
+    ok, resultado = llamar_capacitacion("POST", f"/cuestionarios/{vf['quiz']['id_quiz']}/terminar",
+                                        json={"respuestas": respuestas})
+    if not ok:
+        vf["feedback"] = {"tipo": "error", "titulo": resultado, "texto": ""}
+        return
+    vf["resultado"] = resultado
+    if resultado.get("subio_de_rango"):
+        avisar_puntos(resultado)
+
+
+def salir_cuestionario() -> None:
+    st.session_state.vf = None
+
+
+def mostrar_verdadero_falso(info: dict | None, con_sesion: bool) -> None:
+    vf = st.session_state.vf
+    if vf and vf["resultado"]:
+        r = vf["resultado"]
+        with st.container(key="tarjeta_resultado"):
+            st.markdown('<div class="bawi-etiqueta">Cuestionario terminado</div>', unsafe_allow_html=True)
+            st.subheader(f"🏁 {vf['quiz']['titulo']}")
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Aciertos al primer intento", f"{r['aciertos']} de {r['total']}")
+            c2.metric("Bono por racha", f"+{r['bono_racha']}")
+            c3.metric("Puntos ganados", f"+{r['puntos_ganados']}")
+            (st.success if r["puntos_ganados"] else st.info)(r["mensaje"])
+            st.button("Volver a Capacitación", width="stretch", on_click=salir_cuestionario, key="btn_volver_vf")
+        return
+
+    if not info:
+        st.info("Aún no hay cuestionarios cargados. Corre: python -m backend.seed_capacitacion")
+        return
+
+    if not vf or vf["quiz"]["id_quiz"] != info["id_quiz"]:
+        with st.container(key="tarjeta_vf_inicio"):
+            st.markdown('<div class="bawi-etiqueta">Verdadero o falso</div>', unsafe_allow_html=True)
+            st.subheader(info["titulo"])
+            st.caption(info["descripcion"])
+            st.markdown(f"- {info['total']} afirmaciones sobre riego y cuidado del agua.\n"
+                        "- **+5** por cada acierto al primer intento y **+5 extra** si aciertas 3 seguidas.\n"
+                        "- Si te equivocas, recibes una pista y puedes volver a intentar (sin puntos).")
+            if con_sesion and not info["con_puntos"]:
+                st.caption("Esta vez es práctica: hoy ya ganaste tus puntos de Capacitación o ya lo completaste.")
+            st.button("Comenzar", type="primary", width="stretch", key="btn_empezar_vf",
+                      on_click=empezar_cuestionario, args=(info,))
+        return
+
+    preguntas = vf["quiz"]["preguntas"]
+    pregunta = preguntas[vf["indice"]]
+    with st.container(key="tarjeta_vf"):
+        st.progress(vf["indice"] / len(preguntas),
+                    text=f"Afirmación {vf['indice'] + 1} de {len(preguntas)}"
+                         + ("" if vf["con_puntos"] else " · práctica sin puntos"))
+        st.markdown(f'<div class="bawi-racha">🔥 Racha: {vf["racha"]}</div>'
+                    f'<div class="bawi-afirmacion">“{html.escape(pregunta["enunciado"])}”</div>',
+                    unsafe_allow_html=True)
+        columnas = st.columns(len(pregunta["opciones"]))
+        for columna, opcion in zip(columnas, pregunta["opciones"]):
+            icono = "✅" if opcion["texto"].lower().startswith("v") else "❌"
+            columna.button(f"{icono} {opcion['texto']}", width="stretch", disabled=vf["resuelta"],
+                           key=f"vf_{pregunta['id_pregunta']}_{opcion['id_opcion']}",
+                           on_click=responder_afirmacion, args=(pregunta["id_pregunta"], opcion["id_opcion"]))
+        feedback = vf["feedback"]
+        if feedback:
+            getattr(st, feedback["tipo"])(f"**{feedback['titulo']}**  \n{feedback['texto']}")
+        if vf["resuelta"]:
+            ultima = vf["indice"] + 1 == len(preguntas)
+            st.button("Ver resultado 🏁" if ultima else "Siguiente →", type="primary", width="stretch",
+                      key="btn_siguiente_vf", on_click=siguiente_afirmacion)
+    st.button("Salir del cuestionario", key="btn_salir_vf", on_click=salir_cuestionario)
+
+
 def pantalla_capacitacion() -> None:
+    st.markdown('<div class="bawi-etiqueta">Talento y capacitación</div>', unsafe_allow_html=True)
     st.subheader("🎓 Capacitación")
-    st.info("Muy pronto: **Conoce una palabra** y **Verdadero o falso**. Una dinámica al día para sumar puntos "
-            "y subir de rango.")
+    ok, hoy = llamar_capacitacion("GET", "/hoy")
+    if not ok:
+        st.error(hoy)
+        return
+    if not hoy["con_sesion"]:
+        st.info("📖 Estás practicando sin cuenta. Inicia sesión para ganar puntos y subir de rango.")
+    elif hoy["hecha_hoy"]:
+        d = hoy["dinamica_de_hoy"]
+        st.success(f"✅ Ya hiciste tu dinámica de hoy: **{d['tipo']} · {d['titulo']}** (+{d['puntos']} puntos). "
+                   "Vuelve mañana por más puntos; mientras, puedes practicar.")
+    else:
+        st.info("🎯 Elige **una** dinámica para hoy: solo la primera que completes da puntos.")
+    with st.expander("¿Cómo gano puntos en Capacitación?"):
+        st.table([
+            {"Situación": "Palabra del día aprendida", "Regla": "+5 puntos"},
+            {"Situación": "Acierto en el primer intento", "Regla": "+5 puntos"},
+            {"Situación": "Tres aciertos seguidos al primer intento", "Regla": "+5 extra, una vez por cuestionario"},
+            {"Situación": "Respuesta incorrecta", "Regla": "Pista breve; la racha vuelve a cero"},
+            {"Situación": "Acierto después de recibir ayuda", "Regla": "Aprendizaje completado, sin puntos"},
+            {"Situación": "Repetir una dinámica", "Regla": "Puedes practicar, sin volver a ganar puntos"},
+        ])
+        st.caption("Máximo una dinámica con puntos al día.")
+
+    dinamica = st.segmented_control("Dinámica", list(DINAMICAS), format_func=lambda d: DINAMICAS[d],
+                                    default="palabra", key="dinamica", label_visibility="collapsed")
+    if dinamica == "verdadero_falso":
+        mostrar_verdadero_falso(hoy["cuestionario"], hoy["con_sesion"])
+    else:
+        mostrar_palabra(hoy["palabra"], hoy["con_sesion"])
 
 
 # --------------------------------------------------------------------------
@@ -531,7 +748,7 @@ def pantalla_capacitacion() -> None:
 st.set_page_config(page_title="B.A.W.Í. Comunidad", page_icon="💧", layout="wide")
 st.markdown(CSS, unsafe_allow_html=True)
 for clave, valor in {"token": None, "usuario": None, "aviso": None, "invitado": False,
-                     "vista_acceso": "entrar", "menu": "inicio"}.items():
+                     "vista_acceso": "entrar", "menu": "inicio", "vf": None, "globos": False}.items():
     st.session_state.setdefault(clave, valor)
 
 # Los puntos y el rango cambian al participar: se vuelven a pedir en cada recarga
@@ -549,6 +766,9 @@ def mostrar_aviso() -> None:
         tipo, mensaje = st.session_state.aviso
         getattr(st, tipo)(mensaje)
         st.session_state.aviso = None
+    if st.session_state.globos:
+        st.balloons()
+        st.session_state.globos = False
 
 
 if not yo and not st.session_state.invitado:
