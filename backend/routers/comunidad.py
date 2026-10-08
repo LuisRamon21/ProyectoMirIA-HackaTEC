@@ -5,12 +5,14 @@ C1 - Cuentas: crear cuenta, iniciar sesion y saber quien soy.
 C2 - Publicaciones: ver el feed (sin sesion) y publicar con foto o nota de voz (con sesion).
 C3 - Respuestas: ver una publicacion con sus respuestas y responder (con nota de voz y,
      si el usuario usa B.A.W.I. Riego, con su dato de campo real).
+D1 - Cuentas con correo: se entra con correo (o con el usuario de las cuentas de demo).
 D2 - Rangos y puntos: solo Especialista Agronomo y Maestro de la Tierra responden; likes en
      publicaciones y respuestas; "Le funciono al autor"; puntos segun backend/services/puntos.py.
 Para las rutas que piden sesion, la app manda la cabecera:
     Authorization: Bearer <token>
 """
 import os
+import re
 import uuid
 from pathlib import Path
 
@@ -24,7 +26,7 @@ from backend.services import puntos as reglas
 
 router = APIRouter(prefix="/api/comunidad", tags=["Comunidad"])
 
-CAMPOS_USUARIO = "id_usuario, usuario, nombre, municipio, rol, suscripcion_riego, puntos"
+CAMPOS_USUARIO = "id_usuario, usuario, correo, nombre, municipio, rol, suscripcion_riego, puntos"
 
 
 def usuario_publico(fila) -> dict:
@@ -33,6 +35,7 @@ def usuario_publico(fila) -> dict:
     return {
         "id_usuario": fila["id_usuario"],
         "usuario": fila["usuario"],
+        "correo": fila["correo"],
         "nombre": fila["nombre"],
         "municipio": fila["municipio"],
         "rol": fila["rol"],
@@ -55,9 +58,12 @@ def autor_publico(fila) -> dict:
     }
 
 
-def buscar_usuario(conexion, *, id_usuario: int | None = None, usuario: str | None = None):
+def buscar_usuario(conexion, *, id_usuario: int | None = None, usuario: str | None = None,
+                   correo: str | None = None):
     if id_usuario is not None:
         consulta, valor = "id_usuario = :v", id_usuario
+    elif correo is not None:
+        consulta, valor = "correo = :v", correo
     else:
         consulta, valor = "usuario = :v", usuario
     return conexion.execute(
@@ -87,43 +93,61 @@ def id_visitante(authorization: str | None) -> int:
 # ---------------------------------------------------------------------------
 # C1 - Cuentas
 # ---------------------------------------------------------------------------
+PATRON_CORREO = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
+
+
 class Registro(BaseModel):
-    usuario: str = Field(min_length=3, max_length=30, pattern=r"^[A-Za-z0-9_]+$",
-                         description="solo letras, numeros y guion bajo")
-    nombre: str = Field(min_length=2, max_length=80)
-    municipio: str = Field(min_length=2, max_length=60)
+    nombre: str = Field(min_length=2, max_length=80, description="nombre que aparece en el perfil")
+    correo: str = Field(min_length=5, max_length=120, pattern=PATRON_CORREO)
+    municipio: str = Field(min_length=2, max_length=60, description="zona aproximada del cultivo")
     password: str = Field(min_length=6, max_length=100)
+    confirmacion: str
 
 
 class Login(BaseModel):
-    usuario: str
+    correo: str = Field(description="correo; las cuentas de demo tambien entran con su usuario")
     password: str
+
+
+def _usuario_desde_correo(conexion, correo: str) -> str:
+    """Crea un nombre de usuario interno unico a partir del correo (juan.perez@x.com -> juan_perez)."""
+    base = re.sub(r"[^a-z0-9_]", "_", correo.split("@")[0].lower())[:24].strip("_") or "usuario"
+    candidato, n = base, 1
+    while buscar_usuario(conexion, usuario=candidato):
+        n += 1
+        candidato = f"{base}{n}"
+    return candidato
 
 
 @router.post("/registro")
 def registrar(datos: Registro):
-    usuario = datos.usuario.strip().lower()
+    """Toda cuenta nueva empieza como Aprendiz del Campo: el rango no se elige."""
+    if datos.password != datos.confirmacion:
+        raise HTTPException(status_code=400, detail="Las contraseñas no coinciden.")
+    correo = datos.correo.strip().lower()
     with engine.begin() as conexion:
-        if buscar_usuario(conexion, usuario=usuario):
-            raise HTTPException(status_code=409, detail="Ese nombre de usuario ya existe. Elige otro.")
+        if buscar_usuario(conexion, correo=correo):
+            raise HTTPException(status_code=409, detail="Ya existe una cuenta con ese correo. Inicia sesión.")
+        usuario = _usuario_desde_correo(conexion, correo)
         conexion.execute(
             text(
-                "INSERT INTO usuarios (nombre, usuario, password_hash, municipio) "
-                "VALUES (:nombre, :usuario, :hash, :municipio)"
+                "INSERT INTO usuarios (nombre, usuario, correo, password_hash, municipio) "
+                "VALUES (:nombre, :usuario, :correo, :hash, :municipio)"
             ),
-            {"nombre": datos.nombre.strip(), "usuario": usuario,
+            {"nombre": datos.nombre.strip(), "usuario": usuario, "correo": correo,
              "hash": hashear_password(datos.password), "municipio": datos.municipio.strip()},
         )
-        fila = buscar_usuario(conexion, usuario=usuario)
+        fila = buscar_usuario(conexion, correo=correo)
     return {"token": crear_token(fila["id_usuario"]), "usuario": usuario_publico(fila)}
 
 
 @router.post("/login")
 def iniciar_sesion(datos: Login):
+    identificador = datos.correo.strip().lower()
     with engine.connect() as conexion:
-        fila = buscar_usuario(conexion, usuario=datos.usuario.strip().lower())
+        fila = buscar_usuario(conexion, correo=identificador) or buscar_usuario(conexion, usuario=identificador)
     if not fila or not verificar_password(datos.password, fila["password_hash"]):
-        raise HTTPException(status_code=401, detail="Usuario o contraseña incorrectos.")
+        raise HTTPException(status_code=401, detail="Correo o contraseña incorrectos.")
     return {"token": crear_token(fila["id_usuario"]), "usuario": usuario_publico(fila)}
 
 

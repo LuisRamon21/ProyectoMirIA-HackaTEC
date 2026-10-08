@@ -74,6 +74,7 @@ CREATE TABLE usuarios (
     id_usuario INT PRIMARY KEY IDENTITY(1,1),
     nombre NVARCHAR(80) NOT NULL,
     usuario NVARCHAR(30) NOT NULL UNIQUE,
+    correo NVARCHAR(120) NULL,
     password_hash NVARCHAR(255) NOT NULL,
     municipio NVARCHAR(60) NOT NULL,
     rol NVARCHAR(20) DEFAULT 'productor' CHECK (rol IN ('productor','tecnico','admin')),
@@ -83,6 +84,9 @@ CREATE TABLE usuarios (
     foto_ruta NVARCHAR(255) NULL,
     fecha_registro DATETIME DEFAULT GETDATE()
 );
+
+-- Correo unico (se permiten varios NULL)
+CREATE UNIQUE INDEX uq_usuarios_correo ON usuarios(correo) WHERE correo IS NOT NULL;
 
 CREATE TABLE etapas_cultivo (
     id_etapa INT PRIMARY KEY IDENTITY(1,1),

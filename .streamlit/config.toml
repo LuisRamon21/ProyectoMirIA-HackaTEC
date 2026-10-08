@@ -1,0 +1,14 @@
+# Tema de B.A.W.I. (aplica a Comunidad y Riego cuando se corren desde la raiz del proyecto)
+[theme]
+base = "dark"
+primaryColor = "#F2C94C"
+backgroundColor = "#0B0F0D"
+secondaryBackgroundColor = "#18241E"
+textColor = "#EEF3EF"
+font = "sans serif"
+
+[server]
+maxUploadSize = 10
+
+[client]
+toolbarMode = "viewer"
