@@ -74,33 +74,21 @@ el código que llega al correo).
 - En Riego cada productor registra sus parcelas (cultivo, etapa, sistema de riego, bomba, horas
   de riego habituales y, si quiere, la ubicación exacta) y recibe su recomendación diaria.
   Solo ve sus propias parcelas, recomendaciones e historial.
-- El botón **🌱 Ir a B.A.W.Í. Comunidad** (arriba en el panel izquierdo de Riego) abre Comunidad
-  con la misma sesión, y **💧 Ir a B.A.W.Í. Riego** en Comunidad hace lo contrario.
-  Las direcciones de cada app se configuran en `.env` (`RIEGO_URL`, `COMUNIDAD_URL`).
+- El icono **🌱** de la esquina superior izquierda de Riego (y el botón *Ir a B.A.W.Í. Comunidad*)
+  abre Comunidad con la misma sesión.
 
 ## Ejecutar
 
-Abre **tres** terminales en la carpeta del proyecto y en cada una activa el entorno
-(`.\.venv\Scripts\Activate.ps1`):
-
-```powershell
-# Terminal 1 - API
-uvicorn backend.main:app --host 0.0.0.0 --port 8000
-
-# Terminal 2 - B.A.W.I. Riego
-streamlit run apps/riego/app.py --server.port 8502
-
-# Terminal 3 - B.A.W.I. Comunidad
-streamlit run apps/comunidad/app.py --server.port 8503
-```
-
-**Con Git Bash** (por ejemplo, en la terminal de VS Code) el entorno se activa así:
+Un solo comando arranca todo (la API, Riego y Comunidad) y abre Riego en el navegador.
+Desde Git Bash o la terminal de VS Code, en la carpeta del proyecto:
 
 ```bash
-source .venv/Scripts/activate
+./iniciar.sh
 ```
 
-y los tres comandos son los mismos.
+En Windows también puedes dar **doble clic en `iniciar.bat`**. La primera vez crea el entorno de
+Python e instala las dependencias. Al arrancar muestra los links, también los de la red local
+para entrar desde otras computadoras. **Ctrl + C** detiene todo.
 
 - Riego: <http://localhost:8502>
 - Comunidad: <http://localhost:8503>
@@ -111,6 +99,7 @@ y los tres comandos son los mismos.
 ```
 apps/riego/app.py            App de Riego (Streamlit)
 apps/comunidad/app.py        App de Comunidad (Streamlit)
+iniciar.sh / iniciar.bat     Arrancan todo con un comando (iniciar.py)
 backend/main.py              API (FastAPI)
 backend/routers/riego.py     Rutas de Riego: parcelas, diagnóstico, decisión e historial (con sesión)
 backend/routers/             Rutas de Comunidad y Capacitación (comunidad.py, capacitacion.py)

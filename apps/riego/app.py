@@ -281,6 +281,10 @@ if token_enlace:
     if not st.session_state.token:
         st.session_state.token = token_enlace  # se valida abajo con /yo
 
+# Icono de Comunidad en la esquina superior izquierda (con la sesion iniciada, Comunidad abre ya con la cuenta)
+st.logo("🌱", size="large",
+        link=f"{COMUNIDAD_URL}/?sesion={st.session_state.token}" if st.session_state.token else COMUNIDAD_URL)
+
 if not st.session_state.token:
     pantalla_acceso()
     st.stop()
