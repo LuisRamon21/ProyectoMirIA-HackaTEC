@@ -88,6 +88,14 @@ streamlit run apps/riego/app.py --server.port 8502
 streamlit run apps/comunidad/app.py --server.port 8503
 ```
 
+**Con Git Bash** (por ejemplo, en la terminal de VS Code) el entorno se activa así:
+
+```bash
+source .venv/Scripts/activate
+```
+
+y los tres comandos son los mismos.
+
 - Riego: <http://localhost:8502>
 - Comunidad: <http://localhost:8503>
 - Documentación de la API: <http://localhost:8000/docs>
