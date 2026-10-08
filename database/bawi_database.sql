@@ -74,6 +74,7 @@ CREATE TABLE usuarios (
     id_usuario INT PRIMARY KEY IDENTITY(1,1),
     nombre NVARCHAR(80) NOT NULL,
     usuario NVARCHAR(30) NOT NULL UNIQUE,
+    correo NVARCHAR(120) NULL,
     password_hash NVARCHAR(255) NOT NULL,
     municipio NVARCHAR(60) NOT NULL,
     rol NVARCHAR(20) DEFAULT 'productor' CHECK (rol IN ('productor','tecnico','admin')),
@@ -83,6 +84,9 @@ CREATE TABLE usuarios (
     foto_ruta NVARCHAR(255) NULL,
     fecha_registro DATETIME DEFAULT GETDATE()
 );
+
+-- Correo unico (se permiten varios NULL)
+CREATE UNIQUE INDEX uq_usuarios_correo ON usuarios(correo) WHERE correo IS NOT NULL;
 
 CREATE TABLE etapas_cultivo (
     id_etapa INT PRIMARY KEY IDENTITY(1,1),
@@ -218,6 +222,17 @@ CREATE TABLE intentos_quiz (
     realizado_en DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
     FOREIGN KEY (id_quiz) REFERENCES quizzes(id_quiz)
+);
+
+-- Likes de publicaciones (no dan puntos; ordenan "Tendencias")
+CREATE TABLE likes_publicacion (
+    id_like INT PRIMARY KEY IDENTITY(1,1),
+    id_publicacion INT NOT NULL,
+    id_usuario INT NOT NULL,
+    creado_en DATETIME DEFAULT GETDATE(),
+    CONSTRAINT uq_like_publicacion UNIQUE (id_publicacion, id_usuario),
+    FOREIGN KEY (id_publicacion) REFERENCES publicaciones(id_publicacion) ON DELETE CASCADE,
+    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
 );
 
 CREATE TABLE votos_comentario (
