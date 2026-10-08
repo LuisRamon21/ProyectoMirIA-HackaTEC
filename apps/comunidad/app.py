@@ -10,8 +10,6 @@ import requests
 import streamlit as st
 from dotenv import load_dotenv
 
-from datos_ejemplo import PUBLICACIONES, USUARIOS
-
 load_dotenv()
 API_URL = os.getenv("API_URL", "http://localhost:8000")
 API_COMUNIDAD = f"{API_URL}/api/comunidad"
@@ -59,20 +57,37 @@ def cerrar_sesion() -> None:
     st.session_state.usuario = None
 
 
+@st.cache_data(show_spinner=False, max_entries=200)
+def descargar_archivo(ruta: str) -> bytes | None:
+    """Descarga una foto o audio desde la API. Se manda como bytes a la pagina,
+    asi tambien se ve desde el celular (que no puede abrir 'localhost')."""
+    try:
+        resp = requests.get(f"{API_URL}{ruta}", timeout=20)
+        return resp.content if resp.status_code == 200 else None
+    except requests.exceptions.RequestException:
+        return None
+
+
 def mostrar_publicacion(pub: dict) -> None:
     """Dibuja una publicacion como tarjeta del feed."""
-    autor = USUARIOS[pub["autor_id"]]
+    autor = pub["autor"]
     with st.container(border=True):
-        insignia = " · 💧 usa B.A.W.Í. Riego" if autor["es_riego"] else ""
-        st.markdown(f"**{autor['nombre']}** · {autor['region']}{insignia}")
-        st.caption(f"{CATEGORIAS[pub['categoria']]} · {pub['fecha']}")
+        insignia = " · 💧 usa B.A.W.Í. Riego" if autor["usa_riego"] else ""
+        st.markdown(f"**{autor['nombre']}** · {autor['municipio']}{insignia}")
+        st.caption(f"{CATEGORIAS.get(pub['categoria'], pub['categoria'])} · {pub['creada_en']}")
         st.subheader(pub["titulo"])
         st.write(pub["texto"])
-        if pub["foto"]:
-            st.image(pub["foto"], width=420)
+        if pub["imagen"]:
+            foto = descargar_archivo(pub["imagen"])
+            if foto:
+                st.image(foto, width=420)
+            else:
+                st.caption("🖼️ No se pudo cargar la foto.")
         if pub["audio"]:
-            st.audio(pub["audio"])
-        st.caption(f"💬 {len(pub['respuestas'])} respuesta(s)")
+            audio = descargar_archivo(pub["audio"])
+            if audio:
+                st.audio(audio)
+        st.caption(f"💬 {pub['num_respuestas']} respuesta(s)")
 
 st.set_page_config(page_title="B.A.W.Í. Comunidad", page_icon="🌾", layout="wide")
 st.session_state.setdefault("token", None)
@@ -98,18 +113,46 @@ with tab_feed:
         format_func=lambda c: "Todas" if c == "todas" else CATEGORIAS[c],
         default="todas",
     )
-    if filtro in (None, "todas"):
-        visibles = PUBLICACIONES
-    else:
-        visibles = [p for p in PUBLICACIONES if p["categoria"] == filtro]
-
-    if not visibles:
+    parametros = {} if filtro in (None, "todas") else {"categoria": filtro}
+    ok, publicaciones = llamar_api("GET", "/publicaciones", params=parametros)
+    if not ok:
+        st.error(publicaciones)
+    elif not publicaciones:
         st.info("Todavía no hay publicaciones en esta categoría. ¡Haz la primera pregunta!")
-    for pub in sorted(visibles, key=lambda p: p["fecha"], reverse=True):
-        mostrar_publicacion(pub)
+    else:
+        for pub in publicaciones:  # la API ya las manda de la mas reciente a la mas antigua
+            mostrar_publicacion(pub)
 
 with tab_preguntar:
-    st.info("Aquí irá el formulario para hacer una pregunta (paso C).")
+    if not yo:
+        st.info("Para hacer una pregunta, entra o crea tu cuenta en la pestaña **👤 Mi cuenta**.")
+    else:
+        st.caption(f"Publicando como **{yo['nombre']}**.")
+        with st.form("form_preguntar", clear_on_submit=True):
+            titulo = st.text_input("Título de tu pregunta")
+            categoria = st.selectbox("Categoría", list(CATEGORIAS), format_func=lambda c: CATEGORIAS[c])
+            texto = st.text_area("Cuéntanos qué pasa en tu parcela", height=120)
+            foto = st.file_uploader("📷 Foto (opcional)", type=["jpg", "jpeg", "png", "webp"])
+            voz = st.audio_input("🎤 Nota de voz (opcional)")
+            enviar = st.form_submit_button("Publicar pregunta", type="primary")
+
+        if enviar:
+            if len(titulo.strip()) < 3 or len(texto.strip()) < 3:
+                st.error("Escribe un título y una descripción de al menos 3 letras.")
+            else:
+                archivos = {}
+                if foto:
+                    archivos["foto"] = (foto.name, foto.getvalue(), foto.type or "image/jpeg")
+                if voz:
+                    archivos["audio"] = ("nota_de_voz.wav", voz.getvalue(), "audio/wav")
+                with st.spinner("Publicando..."):
+                    ok, datos = llamar_api("POST", "/publicaciones",
+                                           data={"titulo": titulo, "texto": texto, "categoria": categoria},
+                                           files=archivos or None)
+                if ok:
+                    st.session_state.aviso = "¡Pregunta publicada! Ya aparece en el Feed."
+                    st.rerun()
+                st.error(datos)
 
 with tab_cuenta:
     if yo:
